@@ -10,7 +10,7 @@ export default function RootLayout(){
   return(
       <PaperProvider theme={theme}>
         <Stack>
-          <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
+          <Stack.Screen options={{headerShown: false}}/>
         </Stack>
       </PaperProvider>
   );
