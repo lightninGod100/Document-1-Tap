@@ -9,8 +9,8 @@ export default function RootLayout(){
 
   return(
       <PaperProvider theme={theme}>
-        <Stack>
-          <Stack.Screen options={{headerShown: false}}/>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="index" />
         </Stack>
       </PaperProvider>
   );
