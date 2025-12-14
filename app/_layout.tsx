@@ -1,17 +1,18 @@
-import React, {useState} from 'react';
-import {PaperProvider} from 'react-native-paper';
-import {Stack} from 'expo-router';
-import {lightTheme, darkTheme} from '../src/theme/theme';
+import { Slot } from 'expo-router';
+import { useColorScheme } from 'react-native';
+import { PaperProvider } from 'react-native-paper';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { darkTheme, lightTheme } from '../src/theme/theme';
 
-export default function RootLayout(){
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const theme = isDarkMode ? darkTheme : lightTheme;
+export default function RootLayout() {
+  const colorScheme=useColorScheme();
+  const theme=colorScheme=== 'dark' ? darkTheme : lightTheme;
 
-  return(
-      <PaperProvider theme={theme}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-        </Stack>
-      </PaperProvider>
+  return (
+    <SafeAreaProvider>
+    <PaperProvider theme={theme}>
+      <Slot/>
+    </PaperProvider>
+    </SafeAreaProvider>
   );
 }

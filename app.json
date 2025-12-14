@@ -40,7 +40,10 @@
         {
           "faceIDPermission": "Allow Document 1 Tap to use Face ID for secure authentication."
         }
-      ]
+      ],
+      "expo-router",
+      "expo-secure-store",
+      "expo-web-browser"
     ]
   }
 }
