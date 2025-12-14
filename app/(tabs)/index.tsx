@@ -1,29 +1,44 @@
 // app/(tabs)/index.tsx
 
-import { StyleSheet, View } from 'react-native';
-import { Appbar, Text } from 'react-native-paper';
+import { useRouter } from 'expo-router';
+import { FlatList, StyleSheet, View } from 'react-native';
+import { Appbar } from 'react-native-paper';
+import { CategoryCard } from '../../src/components/CategoryCard';
+import { useCategories } from '../../src/contexts/CategoryContext';
 
 export default function CategoriesScreen() {
+  const router = useRouter();
+  const { categories, isLoading } = useCategories(); // ADDED: Load categories from context
+
   return (
     <View style={styles.container}>
       {/* App Header */}
       <Appbar.Header>
         <Appbar.Content title="Document 1 Tap" />
-        <Appbar.Action icon="cog-outline" onPress={() => {}} />
+        {/* MODIFIED: Replaced cog-outline with folder-plus */}
+        <Appbar.Action 
+          icon="folder-plus" 
+          onPress={() => router.push('/add-category')} 
+        />
       </Appbar.Header>
 
-      {/* Empty State */}
-      <View style={styles.content}>
-        <Text variant="headlineSmall" style={styles.emptyText}>
-          📂
-        </Text>
-        <Text variant="bodyLarge" style={styles.emptyText}>
-          No categories yet
-        </Text>
-        <Text variant="bodySmall" style={styles.emptySubtext}>
-          Categories will appear here
-        </Text>
-      </View>
+      {/* MODIFIED: Replaced empty state with FlatList grid */}
+      <FlatList
+        data={categories}
+        renderItem={({ item }) => (
+          <CategoryCard
+            category={item}
+            onPress={() => {
+              // TODO: Navigate to category detail screen (Phase 5)
+              console.log('Category pressed:', item.name);
+            }}
+          />
+        )}
+        keyExtractor={(item) => item.id}
+        numColumns={3} // ADDED: 3 columns for square grid
+        contentContainerStyle={styles.gridContainer}
+        columnWrapperStyle={styles.row}
+      />
     </View>
   );
 }
@@ -32,18 +47,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
+  gridContainer: {
+    padding: 12,
   },
-  emptyText: {
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    textAlign: 'center',
-    opacity: 0.6,
+  row: {
+    justifyContent: 'flex-start', // Align cards to left
   },
 });
