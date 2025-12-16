@@ -40,3 +40,27 @@ export const DEFAULT_CATEGORIES: Omit<Category, 'documentCount' | 'createdAt'>[]
     isPredefined: true,
   },
 ];
+
+export const CUSTOM_CATEGORY_COLOR='#9C27B0';
+export const CATEGORY_ICONS:string[]=[
+  'folder',           // Default icon (first in list)
+  'file-document',
+  'bank',
+  'credit-card',
+  'car',
+  'airplane',
+  'hospital-box',
+  'school',
+  'home',
+  'briefcase',
+  'certificate',
+  'shield-lock',
+  'account',
+  'cellphone',
+  'cash',
+  'ticket-outline',
+  'heart-pulse',
+  'gavel',
+  'receipt',
+  'passport',
+];

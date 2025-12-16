@@ -8,6 +8,7 @@ import { DEFAULT_CATEGORIES } from '../utils/constants';
 // Storage key for AsyncStorage
 const CATEGORIES_STORAGE_KEY = '@document1tap_categories';
 
+
 // Define what methods/data the context provides
 interface CategoryContextType {
   categories: Category[];
@@ -15,6 +16,7 @@ interface CategoryContextType {
   addCategory: (category: Omit<Category, 'id' | 'documentCount' | 'createdAt'>) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
   updateCategoryDocCount: (id: string, count: number) => Promise<void>;
+  isCategoryNameTaken: (name: string) => boolean; // ADDED: Duplicate check
 }
 
 // Create the context
@@ -34,7 +36,7 @@ export function CategoryProvider({ children }: { children: React.ReactNode }) {
   const loadCategories = async () => {
     try {
       const stored = await AsyncStorage.getItem(CATEGORIES_STORAGE_KEY);
-      
+
       if (stored) {
         // Categories exist in storage, load them
         setCategories(JSON.parse(stored));
@@ -45,7 +47,7 @@ export function CategoryProvider({ children }: { children: React.ReactNode }) {
           documentCount: 0,
           createdAt: Date.now(),
         }));
-        
+
         await AsyncStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(initialized));
         setCategories(initialized);
       }
@@ -89,7 +91,7 @@ export function CategoryProvider({ children }: { children: React.ReactNode }) {
   // Delete a category (only if not predefined and has no documents)
   const deleteCategory = async (id: string) => {
     const category = categories.find((c) => c.id === id);
-    
+
     if (category?.isPredefined || (category?.documentCount ?? 0) > 0) {
       return;
     }
@@ -105,7 +107,13 @@ export function CategoryProvider({ children }: { children: React.ReactNode }) {
     );
     await saveCategories(updated);
   };
-
+  // ADDED: Check if category name already exists (case-insensitive)
+  const isCategoryNameTaken = (name: string): boolean => {
+    const normalizedName = name.trim().toLowerCase();
+    return categories.some(
+      (cat) => cat.name.trim().toLowerCase() === normalizedName
+    );
+  };
   // CRITICAL: Must return JSX, not text
   return (
     <CategoryContext.Provider
@@ -115,6 +123,7 @@ export function CategoryProvider({ children }: { children: React.ReactNode }) {
         addCategory,
         deleteCategory,
         updateCategoryDocCount,
+        isCategoryNameTaken,
       }}
     >
       {children}
