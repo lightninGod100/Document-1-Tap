@@ -56,7 +56,7 @@ export function CategoryCard({ category, onPress }: CategoryCardProps) {
           style={[styles.badge, { backgroundColor: category.color }]}
           size={20}
         >
-          {category.documentCount}
+          {String(category.documentCount)}
         </Badge>
       )}
     </TouchableOpacity>
