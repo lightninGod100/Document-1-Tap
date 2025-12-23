@@ -17,6 +17,8 @@ interface CategoryContextType {
   deleteCategory: (id: string) => Promise<void>;
   updateCategoryDocCount: (id: string, count: number) => Promise<void>;
   isCategoryNameTaken: (name: string) => boolean; // ADDED: Duplicate check
+  // ADDED: Update category method signature
+  updateCategory: (id: string, updates: Partial<Pick<Category, 'name' | 'icon'>>) => Promise<void>;
 }
 
 // Create the context
@@ -100,6 +102,13 @@ export function CategoryProvider({ children }: { children: React.ReactNode }) {
     await saveCategories(updated);
   };
 
+  // ADDED: Update an existing category (name and/or icon)
+  const updateCategory = async (id: string, updates: Partial<Pick<Category, 'name' | 'icon'>>) => {
+    const updated = categories.map((cat) =>
+      cat.id === id ? { ...cat, ...updates } : cat
+    );
+    await saveCategories(updated);
+  };
   // Update document count for a category
   const updateCategoryDocCount = async (id: string, count: number) => {
     const updated = categories.map((cat) =>
@@ -121,6 +130,7 @@ export function CategoryProvider({ children }: { children: React.ReactNode }) {
         categories,
         isLoading,
         addCategory,
+        updateCategory,
         deleteCategory,
         updateCategoryDocCount,
         isCategoryNameTaken,

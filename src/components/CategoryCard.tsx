@@ -9,11 +9,12 @@ import { Category } from '../types';
 interface CategoryCardProps {
   category: Category;
   onPress: () => void;
+  onLongPress?: () => void;
 }
 
-export function CategoryCard({ category, onPress }: CategoryCardProps) {
+export function CategoryCard({ category, onPress, onLongPress }: CategoryCardProps) {
   const theme = useTheme();
-  
+
   // Calculate square card size (screen width / 3 - spacing)
   const screenWidth = Dimensions.get('window').width;
   const cardSize = (screenWidth - 48) / 3; // 48 = padding (16*2) + gaps (8*2)
@@ -31,6 +32,9 @@ export function CategoryCard({ category, onPress }: CategoryCardProps) {
       ]}
       onPress={onPress}
       activeOpacity={0.7}
+      // ADDED: Long press handler (only for custom categories)
+      onLongPress={!category.isPredefined ? onLongPress : undefined}
+      delayLongPress={500}
     >
       {/* Category Icon */}
       <View style={styles.iconContainer}>
