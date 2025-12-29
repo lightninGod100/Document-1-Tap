@@ -14,9 +14,9 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <PaperProvider theme={theme}>
       <CategoryProvider>
-          <DocumentProvider>  {/* ADDED */}
+          <DocumentProvider>  
             <Slot />
-          </DocumentProvider>  {/* ADDED */}
+          </DocumentProvider>  
         </CategoryProvider>
       </PaperProvider>
     </SafeAreaProvider>
