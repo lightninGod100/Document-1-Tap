@@ -1,13 +1,16 @@
 // src/types/index.ts
 
-// Document structure - defines what data each document has
+// MODIFIED: Complete Document interface for Phase 4
 export interface Document {
-  id: string;                    // Unique identifier (e.g., "doc_12345")
-  title: string;                 // Document name (e.g., "Aadhaar Card")
-  documentNumber?: string;       // Optional number (e.g., "1234 5678 9012")
+  id: string;                    // Unique identifier (e.g., "doc_1234567890")
+  title: string;                 // Document name, max 40 chars, defaults to "Unknown"
+  categoryId: string;            // ADDED: Links to category, defaults to "cat_uncategorized"
+  documentNumber?: string;       // Optional (e.g., "1234 5678 9012")
   documentNumberMasked?: string; // Masked version (e.g., "XXXX XXXX 9012")
-  fileUri: string;               // Local file path
-  fileType: 'image' | 'pdf';     // File type
+  notes?: string;                // ADDED: Optional description/notes
+  fileUri?: string;              // MODIFIED: Now optional - local file path
+  fileType?: 'image' | 'pdf';    // MODIFIED: Now optional - file type
+  isStarred: boolean;            // ADDED: For starred tab, defaults to false
   createdAt: number;             // Timestamp when created
   updatedAt: number;             // Timestamp when last modified
 }

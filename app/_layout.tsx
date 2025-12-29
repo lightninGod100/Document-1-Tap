@@ -4,6 +4,7 @@ import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { CategoryProvider } from '../src/contexts/CategoryContext'; // ADDED: Import CategoryProvider
 import { darkTheme, lightTheme } from '../src/theme/theme';
+import { DocumentProvider } from '../src/contexts/DocumentContext'; 
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -12,11 +13,11 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <PaperProvider theme={theme}>
-        {/* ADDED: Wrap Slot with CategoryProvider */}
-        <CategoryProvider> 
-          <Slot />
+      <CategoryProvider>
+          <DocumentProvider>  {/* ADDED */}
+            <Slot />
+          </DocumentProvider>  {/* ADDED */}
         </CategoryProvider>
-         {/* ADDED: Close CategoryProvider */}
       </PaperProvider>
     </SafeAreaProvider>
   );
