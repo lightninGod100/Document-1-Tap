@@ -1,7 +1,6 @@
 // app/add-category.tsx
 
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import {
@@ -16,22 +15,33 @@ import {
 import { IconPickerModal } from '../src/components/IconPickerModal';
 import { useCategories } from '../src/contexts/CategoryContext';
 import { CUSTOM_CATEGORY_COLOR } from '../src/utils/constants';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 
 const MAX_NAME_LENGTH = 14;
 
 export default function AddCategoryScreen() {
   const router = useRouter();
   const theme = useTheme();
-  const { addCategory, isCategoryNameTaken } = useCategories();
+  const { addCategory, updateCategory, categories, isCategoryNameTaken } = useCategories();
+
+  // ADDED: Get route params for edit mode
+  const params = useLocalSearchParams<{ mode?: string; categoryId?: string }>();
+  const isEditMode = params.mode === 'edit';
+
+  // ADDED: Find existing category when editing
+  const existingCategory = isEditMode
+    ? categories.find((c) => c.id === params.categoryId)
+    : null;
 
   // Form state
-  const [name, setName] = useState('');
-  const [selectedIcon, setSelectedIcon] = useState('folder');
+  const [name, setName] = useState(existingCategory?.name ?? '');
+  const [selectedIcon, setSelectedIcon] = useState(existingCategory?.icon ?? 'folder');
   const [iconPickerVisible, setIconPickerVisible] = useState(false);
 
   // Validation state
   const [nameError, setNameError] = useState('');
 
+  // fired when user clicks saves button for final check
   const validateName = (value: string): boolean => {
     const trimmed = value.trim();
 
@@ -40,7 +50,16 @@ export default function AddCategoryScreen() {
       return false;
     }
 
-    if (isCategoryNameTaken(trimmed)) {
+    // When editing, allow keeping the same name
+    const isDuplicate = isEditMode
+      ? categories.some(
+        (cat) =>
+          cat.id !== params.categoryId &&
+          cat.name.trim().toLowerCase() === trimmed.toLowerCase()
+      )
+      : isCategoryNameTaken(trimmed);
+
+    if (isDuplicate) {
       setNameError('Category name already exists');
       return false;
     }
@@ -48,13 +67,22 @@ export default function AddCategoryScreen() {
     setNameError('');
     return true;
   };
-
+  //runs on each keystroke, realtime feedback, clear error as user foxes it
+  // MODIFIED: Fix duplicate check for edit mode
   const handleNameChange = (value: string) => {
     if (value.length <= MAX_NAME_LENGTH) {
       setName(value);
       if (nameError && value.trim().length > 0) {
         const trimmed = value.trim();
-        if (isCategoryNameTaken(trimmed)) {
+        const isDuplicate = isEditMode
+          ? categories.some(
+            (cat) =>
+              cat.id !== params.categoryId &&
+              cat.name.trim().toLowerCase() === trimmed.toLowerCase()
+          )
+          : isCategoryNameTaken(trimmed);
+
+        if (isDuplicate) {
           setNameError('Category name already exists');
         } else {
           setNameError('');
@@ -63,17 +91,27 @@ export default function AddCategoryScreen() {
     }
   };
 
+  // MODIFIED: Handle both add and edit
   const handleSave = async () => {
     if (!validateName(name)) {
       return;
     }
 
-    await addCategory({
-      name: name.trim(),
-      icon: selectedIcon,
-      color: CUSTOM_CATEGORY_COLOR,
-      isPredefined: false,
-    });
+    if (isEditMode && params.categoryId) {
+      // Update existing category
+      await updateCategory(params.categoryId, {
+        name: name.trim(),
+        icon: selectedIcon,
+      });
+    } else {
+      // Add new category
+      await addCategory({
+        name: name.trim(),
+        icon: selectedIcon,
+        color: CUSTOM_CATEGORY_COLOR,
+        isPredefined: false,
+      });
+    }
 
     router.back();
   };
@@ -85,7 +123,8 @@ export default function AddCategoryScreen() {
       {/* MODIFIED: Header - removed save action */}
       <Appbar.Header>
         <Appbar.BackAction onPress={() => router.back()} />
-        <Appbar.Content title="Add Category" />
+       
+        <Appbar.Content title={isEditMode ? 'Edit Category' : 'Add Category'} />
       </Appbar.Header>
 
       {/* Form Content */}
@@ -145,16 +184,16 @@ export default function AddCategoryScreen() {
 
       {/* ADDED: Bottom Save Button */}
       <View style={styles.bottomContainer}>
+      
         <Button
           mode="contained"
           onPress={handleSave}
           disabled={isSaveDisabled}
           style={[styles.saveButton, { backgroundColor: '#03A9F4' }]}
           contentStyle={styles.saveButtonContent}
-          labelStyle={{ color: '#000000' }} 
-          
+          labelStyle={{ color: '#000000' }}
         >
-          Save Category
+          {isEditMode ? 'Update Category' : 'Save Category'}
         </Button>
       </View>
 
