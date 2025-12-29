@@ -15,7 +15,6 @@ export default function TabLayout() {
     <View style={styles.container}>
       <Tabs
         screenOptions={{
-          // Tab bar styling
           tabBarActiveTintColor: theme.colors.primary,
           tabBarInactiveTintColor: theme.colors.onSurfaceDisabled,
           tabBarStyle: {
@@ -33,7 +32,6 @@ export default function TabLayout() {
           headerShown: false,
         }}
       >
-    
         <Tabs.Screen
           name="index"
           options={{
@@ -47,8 +45,6 @@ export default function TabLayout() {
             ),
           }}
         />
-
-
         <Tabs.Screen
           name="all-docs"
           options={{
@@ -62,7 +58,6 @@ export default function TabLayout() {
             ),
           }}
         />
-
         <Tabs.Screen
           name="starred"
           options={{
@@ -76,7 +71,6 @@ export default function TabLayout() {
             ),
           }}
         />
-
         <Tabs.Screen
           name="settings"
           options={{
@@ -91,7 +85,6 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
-
       <FAB
         icon="plus"
         style={[

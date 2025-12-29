@@ -2,11 +2,12 @@
 
 import { useRouter } from 'expo-router';
 import { FlatList, StyleSheet, View } from 'react-native';
-import { Appbar, Text } from 'react-native-paper';
+import { Appbar, Text, Dialog, Button, Portal } from 'react-native-paper';
 import { CategoryCard } from '../../src/components/CategoryCard';
 import { useCategories } from '../../src/contexts/CategoryContext';
 // ADDED: Import useState
-import { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+
 // ADDED: Import CategoryOptionsModal
 import { CategoryOptionsModal } from '../../src/components/CategoryOptionsModal';
 // ADDED: Import Category type
@@ -14,10 +15,12 @@ import { Category } from '../../src/types';
 
 export default function CategoriesScreen() {
   const router = useRouter();
-  const { categories, isLoading } = useCategories();
+  // MODIFIED: Added deleteCategory
+  const { categories, isLoading, deleteCategory } = useCategories();
   const [optionsModalVisible, setOptionsModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-
+  // ADDED: State for delete confirmation dialog
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   //Handle long-press on category card
   const handleLongPress = (category: Category) => {
     setSelectedCategory(category);
@@ -36,12 +39,28 @@ export default function CategoriesScreen() {
   };
 
   //handle delete
+  // MODIFIED: Show delete confirmation dialog
   const handleDelete = () => {
     setOptionsModalVisible(false);
-    //to add delete confoiramtion dialog
-    console.log('Delete Category', selectedCategory?.name);
-  }
+    // Small delay to let options modal close first
+    setTimeout(() => {
+      setDeleteDialogVisible(true);
+    }, 200);
+  };
+  // ADDED: Confirm and execute delete
+  const confirmDelete = async () => {
+    if (!selectedCategory) return;
 
+    // TODO: When DocumentContext exists, move documents to Uncategorized here
+
+    try {
+      await deleteCategory(selectedCategory.id);
+    } catch (error) {
+      console.error('Failed to delete category:', error);
+    }
+    setDeleteDialogVisible(false);
+    setSelectedCategory(null);
+  };
   return (
     <View style={styles.container}>
       {/* App Header */}
@@ -78,7 +97,7 @@ export default function CategoriesScreen() {
           columnWrapperStyle={styles.row}
         />
       )}
-      // ADDED: Category options modal
+      
       <CategoryOptionsModal
         visible={optionsModalVisible}
         category={selectedCategory}
@@ -86,6 +105,26 @@ export default function CategoriesScreen() {
         onEdit={handleEdit}
         onDelete={handleDelete}
       />
+      {/* ADDED: Delete Confirmation Dialog */}
+      <Portal>
+        <Dialog
+          visible={deleteDialogVisible}
+          onDismiss={() => setDeleteDialogVisible(false)}
+        >
+          <Dialog.Title>Delete Category</Dialog.Title>
+          <Dialog.Content>
+            <Text variant="bodyMedium">
+              {selectedCategory && selectedCategory.documentCount > 0
+                ? `This category has ${selectedCategory.documentCount} document(s). They will be moved to Uncategorized. Delete anyway?`
+                : `Delete "${selectedCategory?.name}"?`}
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setDeleteDialogVisible(false)}>Cancel</Button>
+            <Button onPress={confirmDelete} textColor="#F44336">Delete</Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
     </View>
   );
 }

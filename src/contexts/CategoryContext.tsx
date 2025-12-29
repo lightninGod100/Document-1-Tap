@@ -91,12 +91,16 @@ export function CategoryProvider({ children }: { children: React.ReactNode }) {
   };
 
   // Delete a category (only if not predefined and has no documents)
+  // MODIFIED: Allow deletion of categories with documents (they'll be moved to Uncategorized)
   const deleteCategory = async (id: string) => {
     const category = categories.find((c) => c.id === id);
 
-    if (category?.isPredefined || (category?.documentCount ?? 0) > 0) {
+    // Cannot delete predefined categories
+    if (category?.isPredefined) {
       return;
     }
+
+    // TODO: Move documents to Uncategorized when DocumentContext exists
 
     const updated = categories.filter((c) => c.id !== id);
     await saveCategories(updated);

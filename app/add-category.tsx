@@ -123,7 +123,6 @@ export default function AddCategoryScreen() {
       {/* MODIFIED: Header - removed save action */}
       <Appbar.Header>
         <Appbar.BackAction onPress={() => router.back()} />
-       
         <Appbar.Content title={isEditMode ? 'Edit Category' : 'Add Category'} />
       </Appbar.Header>
 
@@ -184,7 +183,6 @@ export default function AddCategoryScreen() {
 
       {/* ADDED: Bottom Save Button */}
       <View style={styles.bottomContainer}>
-      
         <Button
           mode="contained"
           onPress={handleSave}

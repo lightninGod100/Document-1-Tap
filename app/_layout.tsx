@@ -12,9 +12,11 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <PaperProvider theme={theme}>
-        <CategoryProvider> {/* ADDED: Wrap Slot with CategoryProvider */}
+        {/* ADDED: Wrap Slot with CategoryProvider */}
+        <CategoryProvider> 
           <Slot />
-        </CategoryProvider> {/* ADDED: Close CategoryProvider */}
+        </CategoryProvider>
+         {/* ADDED: Close CategoryProvider */}
       </PaperProvider>
     </SafeAreaProvider>
   );
