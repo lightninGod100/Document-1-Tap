@@ -33,7 +33,7 @@ export function CategoryCard({ category, onPress, onLongPress }: CategoryCardPro
       onPress={onPress}
       activeOpacity={0.7}
       // ADDED: Long press handler (only for custom categories)
-      onLongPress={!category.isPredefined ? onLongPress : undefined}
+      onLongPress={onLongPress}
       delayLongPress={500}
     >
       {/* Category Icon */}

@@ -2,7 +2,8 @@
 
 import { useRouter } from 'expo-router';
 import { FlatList, StyleSheet, View } from 'react-native';
-import { Appbar, Text, Dialog, Button, Portal } from 'react-native-paper';
+// MODIFIED: Added Snackbar
+import { Appbar, Text, Dialog, Button, Portal, Snackbar } from 'react-native-paper';
 import { CategoryCard } from '../../src/components/CategoryCard';
 import { useCategories } from '../../src/contexts/CategoryContext';
 // ADDED: Import useState
@@ -21,8 +22,15 @@ export default function CategoriesScreen() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   // ADDED: State for delete confirmation dialog
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  // ADDED: Snackbar state for predefined category message
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
   //Handle long-press on category card
+  // MODIFIED: Show snackbar for predefined, options for custom
   const handleLongPress = (category: Category) => {
+    if (category.isPredefined) {
+      setSnackbarVisible(true);
+      return;
+    }
     setSelectedCategory(category);
     setOptionsModalVisible(true);
   };
@@ -97,7 +105,7 @@ export default function CategoriesScreen() {
           columnWrapperStyle={styles.row}
         />
       )}
-      
+
       <CategoryOptionsModal
         visible={optionsModalVisible}
         category={selectedCategory}
@@ -125,6 +133,18 @@ export default function CategoriesScreen() {
           </Dialog.Actions>
         </Dialog>
       </Portal>
+      {/* ADDED: Snackbar for predefined category message */}
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={2000}
+        action={{
+          label: 'OK',
+          onPress: () => setSnackbarVisible(false),
+        }}
+      >
+        Predefined categories can't be modified
+      </Snackbar>
     </View>
   );
 }
