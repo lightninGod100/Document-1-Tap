@@ -1,7 +1,7 @@
 // app/add-document.tsx
 
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import {
@@ -30,6 +30,7 @@ const DEFAULT_CATEGORY_ID = 'cat_uncategorized';
 
 export default function AddDocumentScreen() {
     const router = useRouter();
+    const { origin } = useLocalSearchParams<{ origin?: string }>();
     const theme = useTheme();
     const { categories } = useCategories();
 
@@ -157,6 +158,7 @@ export default function AddDocumentScreen() {
 
         try {
             const finalTitle = title.trim() || 'Unknown';
+
             // Prepare document data
             await addDocument({
                 title: finalTitle,
@@ -173,7 +175,11 @@ export default function AddDocumentScreen() {
 
             // Navigate back after short delay (let user see toast)
             setTimeout(() => {
-                router.back();
+                if (origin) {
+                    router.replace(origin);
+                } else {
+                    router.back();
+                }
             }, 500);
 
         } catch (error) {

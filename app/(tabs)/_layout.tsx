@@ -5,12 +5,14 @@ import { Tabs, useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { FAB, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { usePathname } from 'expo-router';
+
 
 export default function TabLayout() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-
+  const pathname = usePathname();
   return (
     <View style={styles.container}>
       <Tabs
@@ -94,7 +96,7 @@ export default function TabLayout() {
             backgroundColor: '#FF6B6B',
           },
         ]}
-        onPress={() => router.push('/add-document')}
+        onPress={() => router.push({ pathname: '/add-document', params: { origin: pathname } })}
       />
     </View>
   );
