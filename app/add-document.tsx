@@ -10,6 +10,7 @@ import {
     Dialog,
     HelperText,
     Portal,
+    Snackbar,  // ADDED
     Text,
     TextInput,
     TouchableRipple,
@@ -21,6 +22,7 @@ import { useCategories } from '../src/contexts/CategoryContext';
 // MODIFIED: Add pickFromGallery to import
 // MODIFIED: Add pickPDF to import
 import { captureFromCamera, pickFromGallery, pickPDF } from '../src/utils/filePickers';
+import { useDocuments } from '../src/contexts/DocumentContext';
 // Constants for validation
 const MAX_TITLE_LENGTH = 40;
 const MAX_DOC_NUMBER_LENGTH = 50;
@@ -48,7 +50,33 @@ export default function AddDocumentScreen() {
     const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
     const [fileSheetVisible, setFileSheetVisible] = useState(false);
     const [noFileWarningVisible, setNoFileWarningVisible] = useState(false);
+    const { addDocument } = useDocuments();
+    // ADDED: Loading state for save operation
+    const [isSaving, setIsSaving] = useState(false);
+    const [snackbar, setSnackbar] = useState<{
+        visible: boolean;
+        message: string;
+        type: 'success' | 'error';
+    }>({
+        visible: false,
+        message: '',
+        type: 'success',
+    });
 
+    // ADDED: Show success snackbar
+    const showSuccess = (message: string) => {
+        setSnackbar({ visible: true, message, type: 'success' });
+    };
+
+    // ADDED: Show error snackbar
+    const showError = (message: string) => {
+        setSnackbar({ visible: true, message, type: 'error' });
+    };
+
+    // ADDED: Hide snackbar
+    const hideSnackbar = () => {
+        setSnackbar(prev => ({ ...prev, visible: false }));
+    };
     // Get selected category details for display
     const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
 
@@ -69,7 +97,7 @@ export default function AddDocumentScreen() {
     const handleFileSourceSelect = async (source: FileSourceType) => {
         if (source === 'camera') {
             const result = await captureFromCamera();
-            
+
             if (result.success && result.file) {
                 setSelectedFile({
                     uri: result.file.uri,
@@ -77,10 +105,10 @@ export default function AddDocumentScreen() {
                     name: result.file.name,
                 });
             }
-            
+
         } else if (source === 'gallery') {
             const result = await pickFromGallery();
-            
+
             if (result.success && result.file) {
                 setSelectedFile({
                     uri: result.file.uri,
@@ -88,11 +116,11 @@ export default function AddDocumentScreen() {
                     name: result.file.name,
                 });
             }
-            
+
         } else if (source === 'pdf') {
             // ADDED: PDF picker implementation
             const result = await pickPDF();
-            
+
             if (result.success && result.file) {
                 setSelectedFile({
                     uri: result.file.uri,
@@ -120,21 +148,40 @@ export default function AddDocumentScreen() {
         saveDocument();
     };
 
-    // Actual save logic (will be expanded in Phase 4D)
-    const saveDocument = () => {
-        const finalTitle = title.trim() || 'Unknown';
+    // REPLACED: Actual save logic with context integration
+    const saveDocument = async () => {
+        // Prevent double-tap
+        if (isSaving) return;
 
-        // TODO: Implement actual save in Phase 4D
-        console.log('Saving document:', {
-            title: finalTitle,
-            categoryId: selectedCategoryId,
-            documentNumber: documentNumber.trim() || undefined,
-            notes: notes.trim() || undefined,
-            file: selectedFile,
-        });
+        setIsSaving(true);
 
-        // Navigate back
-        router.back();
+        try {
+            const finalTitle = title.trim() || 'Unknown';
+            // Prepare document data
+            await addDocument({
+                title: finalTitle,
+                categoryId: selectedCategoryId,
+                documentNumber: documentNumber.trim() || undefined,
+                notes: notes.trim() || undefined,
+                fileUri: selectedFile?.uri,
+                fileType: selectedFile?.type,
+                isStarred: false,
+            });
+
+            // Show success message
+            showSuccess('Document saved successfully');
+
+            // Navigate back after short delay (let user see toast)
+            setTimeout(() => {
+                router.back();
+            }, 500);
+
+        } catch (error) {
+            console.error('Failed to save document:', error);
+            showError('Failed to save document. Please try again.');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     // Handle "Continue" in warning dialog (save without file)
@@ -353,8 +400,16 @@ export default function AddDocumentScreen() {
                     contentStyle={styles.saveButtonContent}
                     buttonColor="#009688"
                     textColor="#FFFFFF"
+                    loading={isSaving}
+                    disabled={isSaving}
+                    theme={{
+                        colors: {
+                            surfaceDisabled: '#009688',
+                            onSurfaceDisabled: '#FFFFFF',
+                        },
+                    }}
                 >
-                    Save Document
+                    {isSaving ? 'Saving...' : 'Save Document'}
                 </Button>
             </View>
 
@@ -405,6 +460,21 @@ export default function AddDocumentScreen() {
                     </Dialog.Actions>
                 </Dialog>
             </Portal>
+            <Snackbar
+                visible={snackbar.visible}
+                onDismiss={hideSnackbar}
+                duration={3000}
+                style={{
+                    backgroundColor: snackbar.type === 'success' ? '#4CAF50' : '#F44336',
+                }}
+                action={{
+                    label: 'OK',
+                    textColor: '#FFFFFF',
+                    onPress: hideSnackbar,
+                }}
+            >
+                {snackbar.message}
+            </Snackbar>
         </View>
     );
 }
@@ -544,6 +614,10 @@ const styles = StyleSheet.create({
     saveButtonContent: {
         paddingVertical: 8,
     },
+    saveButtonLabel: {
+        color: '#FFFFFF',
+        fontWeight: '600',
+    },
     // Dialog styles
     dialogTitle: {
         textAlign: 'center',
@@ -551,4 +625,5 @@ const styles = StyleSheet.create({
     dialogContent: {
         textAlign: 'center',
     },
+
 });
