@@ -3,7 +3,7 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, View } from 'react-native';
 import {
     Appbar,
     Button,
@@ -23,6 +23,8 @@ import { useCategories } from '../src/contexts/CategoryContext';
 // MODIFIED: Add pickPDF to import
 import { captureFromCamera, pickFromGallery, pickPDF } from '../src/utils/filePickers';
 import { useDocuments } from '../src/contexts/DocumentContext';
+// MODIFIED: Add Image to React Native imports
+
 // Constants for validation
 const MAX_TITLE_LENGTH = 40;
 const MAX_DOC_NUMBER_LENGTH = 50;
@@ -394,6 +396,16 @@ export default function AddDocumentScreen() {
                             </TouchableRipple>
                         </View>
                     )}
+                    {/* Image Preview - Only shown for images */}
+                    {selectedFile && selectedFile.type === 'image' && (
+                        <View style={styles.imagePreviewContainer}>
+                            <Image
+                                source={{ uri: selectedFile.uri }}
+                                style={styles.imagePreview}
+                                resizeMode="contain"
+                            />
+                        </View>
+                    )}
                 </View>
             </ScrollView>
 
@@ -631,5 +643,17 @@ const styles = StyleSheet.create({
     dialogContent: {
         textAlign: 'center',
     },
-
+    // Image Preview styles (NEW)
+    imagePreviewContainer: {
+        marginTop: 12,
+        borderWidth: 1,
+        borderColor: '#E0E0E0',
+        borderRadius: 8,
+        overflow: 'hidden',
+        backgroundColor: '#F5F5F5',
+    },
+    imagePreview: {
+        width: '100%',
+        height: 120,
+    },
 });
