@@ -41,7 +41,6 @@ const maskDocumentNumber = (number: string): string => {
   return combined.replace(/(.{4})/g, '$1 ').trim();
 };
 
-// Helper: Copy file to app's document directory
 // NEW: Helper using SDK 54 API
 const copyFileToAppDirectory = async (
     sourceUri: string, 

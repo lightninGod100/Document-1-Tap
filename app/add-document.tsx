@@ -18,7 +18,9 @@ import {
 import { CategoryPickerModal } from '../src/components/CategoryPickerModal';
 import { FileSelectionSheet, FileSourceType } from '../src/components/FileSelectionSheet';
 import { useCategories } from '../src/contexts/CategoryContext';
-
+// MODIFIED: Add pickFromGallery to import
+// MODIFIED: Add pickPDF to import
+import { captureFromCamera, pickFromGallery, pickPDF } from '../src/utils/filePickers';
 // Constants for validation
 const MAX_TITLE_LENGTH = 40;
 const MAX_DOC_NUMBER_LENGTH = 50;
@@ -64,23 +66,40 @@ export default function AddDocumentScreen() {
         }
     };
 
-    // Handle file source selection (placeholder - will implement actual pickers in Phase 4B/4C)
-    const handleFileSourceSelect = (source: FileSourceType) => {
-        console.log('File source selected:', source);
-        // TODO: Implement actual file picking in Phase 4B/4C
-        // For now, simulate a selected file for testing UI
-        if (source === 'camera' || source === 'gallery') {
-            setSelectedFile({
-                uri: 'placeholder_image_uri',
-                type: 'image',
-                name: 'test_image.jpg',
-            });
+    const handleFileSourceSelect = async (source: FileSourceType) => {
+        if (source === 'camera') {
+            const result = await captureFromCamera();
+            
+            if (result.success && result.file) {
+                setSelectedFile({
+                    uri: result.file.uri,
+                    type: result.file.type,
+                    name: result.file.name,
+                });
+            }
+            
+        } else if (source === 'gallery') {
+            const result = await pickFromGallery();
+            
+            if (result.success && result.file) {
+                setSelectedFile({
+                    uri: result.file.uri,
+                    type: result.file.type,
+                    name: result.file.name,
+                });
+            }
+            
         } else if (source === 'pdf') {
-            setSelectedFile({
-                uri: 'placeholder_pdf_uri',
-                type: 'pdf',
-                name: 'test_document.pdf',
-            });
+            // ADDED: PDF picker implementation
+            const result = await pickPDF();
+            
+            if (result.success && result.file) {
+                setSelectedFile({
+                    uri: result.file.uri,
+                    type: result.file.type,
+                    name: result.file.name,
+                });
+            }
         }
     };
 
@@ -233,7 +252,7 @@ export default function AddDocumentScreen() {
                         outlineColor="#E0E0E0"
                         activeOutlineColor="#009688"
                         textColor="#000000"           // ADDED
-                        placeholderTextColor="#9E9E9E" 
+                        placeholderTextColor="#9E9E9E"
                     />
                 </View>
 
