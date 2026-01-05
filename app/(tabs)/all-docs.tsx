@@ -8,7 +8,7 @@ import { useDocuments } from '../../src/contexts/DocumentContext';
 
 export default function AllDocsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
-  const { documents, isLoading } = useDocuments(); // ADDED: Get documents from context
+  const { documents, isLoading,toggleStar } = useDocuments(); // ADDED: Get documents from context
 
   // TODO: Search filtering will be implemented in Phase 7
   // For now, display all documents
@@ -37,6 +37,7 @@ export default function AllDocsScreen() {
         emptyTitle="No documents found"
         emptySubtitle="Start adding documents using the + button"
         // onDocumentPress, onStarPress, onMenuPress, onCopyPress → Phase 6
+        onStarPress={(doc) => toggleStar(doc.id)} 
       />
     </View>
   );
