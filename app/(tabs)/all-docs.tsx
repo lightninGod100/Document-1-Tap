@@ -2,10 +2,16 @@
 
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Appbar, Searchbar, Text } from 'react-native-paper';
+import { Appbar, Searchbar } from 'react-native-paper';
+import { DocumentList } from '../../src/components/DocumentList';
+import { useDocuments } from '../../src/contexts/DocumentContext';
 
 export default function AllDocsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
+  const { documents, isLoading } = useDocuments(); // ADDED: Get documents from context
+
+  // TODO: Search filtering will be implemented in Phase 7
+  // For now, display all documents
 
   return (
     <View style={styles.container}>
@@ -14,7 +20,7 @@ export default function AllDocsScreen() {
         <Appbar.Content title="All Documents" />
       </Appbar.Header>
 
-      {/* Search Bar (visual only for now) */}
+      {/* Search Bar (visual only for now - Phase 7) */}
       <View style={styles.searchContainer}>
         <Searchbar
           placeholder="Search documents..."
@@ -24,18 +30,14 @@ export default function AllDocsScreen() {
         />
       </View>
 
-      {/* Empty State */}
-      <View style={styles.content}>
-        <Text variant="headlineSmall" style={styles.emptyText}>
-          📄
-        </Text>
-        <Text variant="bodyLarge" style={styles.emptyText}>
-          No documents found
-        </Text>
-        <Text variant="bodySmall" style={styles.emptySubtext}>
-          Start adding documents using the + button
-        </Text>
-      </View>
+      {/* MODIFIED: Document List replaces empty state */}
+      <DocumentList
+        documents={documents}
+        emptyIcon="file-document-outline"
+        emptyTitle="No documents found"
+        emptySubtitle="Start adding documents using the + button"
+        // onDocumentPress, onStarPress, onMenuPress, onCopyPress → Phase 6
+      />
     </View>
   );
 }
@@ -46,22 +48,10 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     padding: 16,
+    paddingBottom: 8, // MODIFIED: Reduced bottom padding since list has its own padding
   },
   searchbar: {
     elevation: 0,
   },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  emptyText: {
-    textAlign: 'center',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    textAlign: 'center',
-    opacity: 0.6,
-  },
+  // REMOVED: content, emptyText, emptySubtext styles (now handled by DocumentList)
 });
