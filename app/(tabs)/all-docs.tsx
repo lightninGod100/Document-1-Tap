@@ -1,17 +1,22 @@
 // app/(tabs)/all-docs.tsx
-
+// ADD this import at the top
+import { Document } from '../../src/types';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Appbar, Searchbar } from 'react-native-paper';
 import { DocumentList } from '../../src/components/DocumentList';
 import { useDocuments } from '../../src/contexts/DocumentContext';
+import { useRouter } from 'expo-router';
 
 export default function AllDocsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const { documents, isLoading,toggleStar } = useDocuments(); // ADDED: Get documents from context
-
+  const router = useRouter();
   // TODO: Search filtering will be implemented in Phase 7
   // For now, display all documents
+  const handleDocumentPress = (doc: Document) => {
+    router.push(`/document/${doc.id}`);
+  };
 
   return (
     <View style={styles.container}>
@@ -37,6 +42,7 @@ export default function AllDocsScreen() {
         emptyTitle="No documents found"
         emptySubtitle="Start adding documents using the + button"
         // onDocumentPress, onStarPress, onMenuPress, onCopyPress → Phase 6
+        onDocumentPress={handleDocumentPress} 
         onStarPress={(doc) => toggleStar(doc.id)} 
       />
     </View>

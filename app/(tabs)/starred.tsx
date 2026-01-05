@@ -1,10 +1,12 @@
 // app/(tabs)/starred.tsx
-
+// ADD this import at the top
+import { Document } from '../../src/types';
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Appbar, Searchbar } from 'react-native-paper';
 import { DocumentList } from '../../src/components/DocumentList';
 import { useDocuments} from '../../src/contexts/DocumentContext';
+import { useRouter } from 'expo-router';
 
 export default function StarredScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -12,8 +14,11 @@ export default function StarredScreen() {
 
   // Get only starred documents
   const starredDocuments = getStarredDocuments();
-
+  const router = useRouter();
   // TODO: Search filtering will be implemented in Phase 7
+  const handleDocumentPress = (doc: Document) => {
+    router.push(`/document/${doc.id}`);
+  };
 
   return (
     <View style={styles.container}>
@@ -39,6 +44,7 @@ export default function StarredScreen() {
         emptyTitle="No starred documents yet"
         emptySubtitle="Star documents for quick access"
         // onDocumentPress, onStarPress, onMenuPress, onCopyPress → Phase 6
+        onDocumentPress={handleDocumentPress} 
         onStarPress={(doc) => toggleStar(doc.id)}
       />
     </View>
