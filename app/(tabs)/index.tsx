@@ -93,9 +93,7 @@ export default function CategoriesScreen() {
           renderItem={({ item }) => (
             <CategoryCard
               category={item}
-              onPress={() => {
-                console.log('Category pressed:', item.name);
-              }}
+              onPress={() => router.push({ pathname: '/category-detail', params: { categoryId: item.id } })}
               onLongPress={() => handleLongPress(item)}
             />
           )}
