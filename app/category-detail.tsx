@@ -8,6 +8,7 @@ import { Appbar, Searchbar, Text, useTheme } from 'react-native-paper';
 import { DocumentList } from '../src/components/DocumentList';
 import { useCategories } from '../src/contexts/CategoryContext';
 import { useDocuments } from '../src/contexts/DocumentContext';
+import { Document } from '../src/types';
 
 export default function CategoryDetailScreen() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function CategoryDetailScreen() {
 
   // Get category details and documents
   const { categories } = useCategories();
-  const { getDocumentsByCategory } = useDocuments();
+  const { getDocumentsByCategory, toggleStar } = useDocuments();
 
   // Find the category
   const category = categories.find((c) => c.id === categoryId);
@@ -43,7 +44,9 @@ export default function CategoryDetailScreen() {
       </View>
     );
   }
-
+  const handleDocumentPress = (doc: Document) => {
+    router.push(`/document/${doc.id}`);
+  };
   return (
     <View style={styles.container}>
       {/* Header with Category Icon + Name */}
@@ -87,6 +90,8 @@ export default function CategoryDetailScreen() {
         emptyTitle={`No documents in ${category.name}`}
         emptySubtitle="Add documents using the + button"
         // onDocumentPress, onStarPress, onMenuPress, onCopyPress → Phase 6
+        onDocumentPress={handleDocumentPress}
+        onStarPress={(doc) => toggleStar(doc.id)}
       />
     </View>
   );
