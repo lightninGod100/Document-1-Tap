@@ -33,7 +33,7 @@ import { useCategories } from '../../src/contexts/CategoryContext';
 import { useDocuments } from '../../src/contexts/DocumentContext';
 import { Document } from '../../src/types';
 import { formatDocumentDate, getFormattedFileSize } from '../../src/utils/fileUtils';
-
+import { openPdfInViewer } from '../../src/utils/openPdfViewer';
 // Import the image zoom component
 import { ImageZoom } from '@likashefqet/react-native-image-zoom';
 
@@ -108,7 +108,7 @@ export default function DocumentDetailScreen() {
 
   const handleShare = async () => {
     setMenuVisible(false);
-    
+
     if (!document.fileUri) {
       showSnackbar('No file to share');
       return;
@@ -161,26 +161,17 @@ export default function DocumentDetailScreen() {
     }
   };
 
+  // MODIFIED: Use new openPdfInViewer utility
   const handleOpenPDF = async () => {
     if (!document.fileUri) {
       showSnackbar('No file to open');
       return;
     }
 
-    const isAvailable = await Sharing.isAvailableAsync();
-    if (!isAvailable) {
-      showSnackbar('Cannot open file on this device');
-      return;
-    }
+    const result = await openPdfInViewer(document.fileUri, document.title);
 
-    try {
-      await Sharing.shareAsync(document.fileUri, {
-        mimeType: 'application/pdf',
-        dialogTitle: `Open ${document.title}`,
-      });
-    } catch (error) {
-      console.error('Open PDF error:', error);
-      showSnackbar('Failed to open PDF');
+    if (!result.success && result.error) {
+      showSnackbar(result.error);
     }
   };
 
@@ -419,8 +410,8 @@ export default function DocumentDetailScreen() {
         </View>
       </ScrollView>
 
-    
-      
+
+
 
       {/* Delete Confirmation Dialog */}
       <Portal>
@@ -553,11 +544,11 @@ const styles = StyleSheet.create({
   fileTypeChip: {
     backgroundColor: '#2b2b2a',
     height: 31,
-   
+
   },
   fileTypeChipText: {
     fontSize: 11,
-    
+
     //color: '#64748B',
   },
 
