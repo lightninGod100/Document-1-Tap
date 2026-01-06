@@ -305,12 +305,13 @@ export default function DocumentDetailScreen() {
   );
 
   const renderDocumentIdSection = () => {
-    // Only render if document has a number
-    if (!document.documentNumber) return null;
+    const hasDocumentNumber = !!document.documentNumber;
 
-    const displayNumber = isNumberRevealed
-      ? document.documentNumber
-      : document.documentNumberMasked || '•••• •••• ••••';
+    const displayNumber = !hasDocumentNumber
+      ? 'No document ID added'
+      : isNumberRevealed
+        ? document.documentNumber
+        : document.documentNumberMasked || '•••• •••• ••••';
 
     return (
       <View style={styles.section}>
@@ -319,37 +320,59 @@ export default function DocumentDetailScreen() {
         </Text>
         <Surface style={styles.documentIdCard} elevation={1}>
           <MaterialCommunityIcons
-            name="lock"
+            name={hasDocumentNumber ? 'lock' : 'lock-open-outline'}
             size={20}
             color={theme.colors.onSurfaceVariant}
           />
           <Text
             variant="bodyLarge"
-            style={[styles.documentIdText, { color: theme.colors.onSurface }]}
+            style={[
+              styles.documentIdText,
+              hasDocumentNumber
+                ? { color: theme.colors.onSurface }
+                : {
+                  color: theme.colors.onSurfaceVariant,
+                  fontStyle: 'italic',
+                  fontFamily: undefined,  // Reset to default font
+                  letterSpacing: 0,       // Remove letter spacing
+                },
+            ]}
           >
             {displayNumber}
           </Text>
           <View style={styles.documentIdActions}>
             <TouchableRipple
-              onPress={handleRevealNumber}
-              style={styles.documentIdButton}
+              onPress={hasDocumentNumber ? handleRevealNumber : undefined}
+              style={[
+                styles.documentIdButton,
+                !hasDocumentNumber && styles.disabledButton,
+              ]}
               borderless
+              disabled={!hasDocumentNumber}
             >
               <MaterialCommunityIcons
                 name={isNumberRevealed ? 'eye-off' : 'eye'}
                 size={20}
-                color={theme.colors.onSurfaceVariant}
+                color={hasDocumentNumber
+                  ? theme.colors.onSurfaceVariant
+                  : theme.colors.surfaceDisabled}
               />
             </TouchableRipple>
             <TouchableRipple
-              onPress={handleCopyNumber}
-              style={[styles.documentIdButton, styles.copyButton]}
+              onPress={hasDocumentNumber ? handleCopyNumber : undefined}
+              style={[
+                styles.documentIdButton,
+                hasDocumentNumber ? styles.copyButton : styles.disabledButton,
+              ]}
               borderless
+              disabled={!hasDocumentNumber}
             >
               <MaterialCommunityIcons
                 name="content-copy"
                 size={20}
-                color="#137fec"
+                color={hasDocumentNumber
+                  ? '#137fec'
+                  : theme.colors.surfaceDisabled}
               />
             </TouchableRipple>
           </View>
@@ -359,7 +382,7 @@ export default function DocumentDetailScreen() {
   };
 
   const renderNotesSection = () => {
-    if (!document.notes) return null;
+    const hasNotes = !!document.notes;
 
     return (
       <View style={styles.section}>
@@ -368,14 +391,19 @@ export default function DocumentDetailScreen() {
         </Text>
         <Text
           variant="bodyMedium"
-          style={[styles.notesText, { color: theme.colors.onSurfaceVariant }]}
+          style={[
+            styles.notesText,
+            {
+              color: theme.colors.onSurfaceVariant,
+              fontStyle: hasNotes ? 'normal' : 'italic',
+            },
+          ]}
         >
-          {document.notes}
+          {hasNotes ? document.notes : 'No notes found'}
         </Text>
       </View>
     );
   };
-
 
 
   // ============================================
@@ -597,7 +625,9 @@ const styles = StyleSheet.create({
   copyButton: {
     backgroundColor: 'rgba(19, 127, 236, 0.1)',
   },
-
+  disabledButton: {
+    opacity: 0.4,
+  },
   // Notes
   notesText: {
     lineHeight: 22,
@@ -640,4 +670,5 @@ const styles = StyleSheet.create({
   dialogTitle: {
     textAlign: 'center',
   },
+
 });
