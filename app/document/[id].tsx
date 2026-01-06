@@ -537,26 +537,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 1,
   },
   metadataChips: {
     flexDirection: 'row',
     gap: 8,
   },
   categoryChip: {
-    height: 28,
+    height: 31,
   },
   categoryChipText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
   },
   fileTypeChip: {
-    backgroundColor: '#F1F5F9',
-    height: 28,
+    backgroundColor: '#2b2b2a',
+    height: 31,
+   
   },
   fileTypeChipText: {
-    fontSize: 12,
-    color: '#64748B',
+    fontSize: 11,
+    
+    //color: '#64748B',
   },
 
   divider: {
