@@ -8,6 +8,7 @@ import * as Sharing from 'expo-sharing';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  Image,
   ScrollView,
   StyleSheet,
   View,
@@ -268,7 +269,15 @@ export default function DocumentDetailScreen() {
       </Surface>
     </View>
   );
-
+  const renderPlaceholder = () => (
+    <View style={styles.placeholderContainer}>
+      <Image
+        source={require('../../assets/images/doc_placeholderr.jpg')}
+        style={styles.placeholderImage}
+        resizeMode="contain"
+      />
+    </View>
+  );
   const renderMetadataRow = () => (
     <View style={styles.metadataRow}>
       <View style={styles.metadataChips}>
@@ -419,10 +428,12 @@ export default function DocumentDetailScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Image or PDF Viewer */}
-        {document.fileType === 'image' && document.fileUri
-          ? renderImageViewer()
-          : renderPdfCard()}
+        {/* Image or PDF Viewer or Placeholder */}
+        {!document.fileUri
+          ? renderPlaceholder()
+          : document.fileType === 'image'
+            ? renderImageViewer()
+            : renderPdfCard()}
 
         {/* Metadata Row */}
         <View style={styles.contentPadding}>
@@ -669,6 +680,19 @@ const styles = StyleSheet.create({
   // Dialog
   dialogTitle: {
     textAlign: 'center',
+  },
+  // Placeholder
+  placeholderContainer: {
+    width: '100%',
+    aspectRatio: 1 / 1.41,
+    padding: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderImage: {
+    width: '90%',
+    height: '70%',
+    borderRadius: 8,
   },
 
 });
