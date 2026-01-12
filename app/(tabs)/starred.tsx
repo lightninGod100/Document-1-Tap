@@ -17,7 +17,7 @@ export default function StarredScreen() {
   const router = useRouter();
   // TODO: Search filtering will be implemented in Phase 7
   const handleDocumentPress = (doc: Document) => {
-    router.push(`/document/${doc.id}`);
+    router.push({ pathname: `/document/${doc.id}`, params: { source: 'starred' } });
   };
 
   return (

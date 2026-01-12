@@ -3,15 +3,16 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import * as Sharing from 'expo-sharing';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   Alert,
   Image,
   ScrollView,
   StyleSheet,
   View,
+  BackHandler
 } from 'react-native';
 import {
   Appbar,
@@ -40,7 +41,7 @@ import { ImageZoom } from '@likashefqet/react-native-image-zoom';
 
 export default function DocumentDetailScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, source } = useLocalSearchParams<{ id: string; source?: string }>();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -91,9 +92,30 @@ export default function DocumentDetailScreen() {
   // ============================================
   // HANDLERS
   // ============================================
+  // ADDED: Handle Android hardware back button
+  // ADDED: Handle Android hardware back button
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        handleBack();
+        return true;
+      };
 
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => {
+        subscription.remove(); // FIXED: Use subscription.remove() instead of removeEventListener
+      };
+    }, [source])
+  );
   const handleBack = () => {
-    router.back();
+    if (source === 'all-docs') {
+      router.replace('/(tabs)/all-docs');
+    } else if (source === 'starred') {
+      router.replace('/(tabs)/starred');
+    } else {
+      router.back(); // Fallback for category-detail and others
+    }
   };
 
   const handleToggleStar = async () => {

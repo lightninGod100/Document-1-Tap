@@ -15,7 +15,7 @@ export default function AllDocsScreen() {
   // TODO: Search filtering will be implemented in Phase 7
   // For now, display all documents
   const handleDocumentPress = (doc: Document) => {
-    router.push(`/document/${doc.id}`);
+    router.push({ pathname: `/document/${doc.id}`, params: { source: 'all-docs' } });
   };
 
   return (
