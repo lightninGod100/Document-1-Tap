@@ -10,14 +10,18 @@ import { useRouter } from 'expo-router';
 // ADDED: Import for sort/filter
 import { useSortFilter } from '../../src/hooks/useSortFilter';
 import { SortFilterSheet } from '../../src/components/SortFilterSheet';
+// ADD this import
+import { searchDocuments } from '../../src/utils/searchUtils';
+import { useCategories } from '../../src/contexts/CategoryContext';
 
 export default function AllDocsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const { documents, isLoading, toggleStar } = useDocuments(); // ADDED: Get documents from context
   const [filterSheetVisible, setFilterSheetVisible] = useState(false);
   const router = useRouter();
+  const { categories } = useCategories();
+  const searchedDocuments = searchDocuments(documents, searchQuery, categories);
 
-  // ADDED: Sort/Filter hook
   const {
     filteredDocuments,
     sortConfig,
@@ -27,9 +31,25 @@ export default function AllDocsScreen() {
     clearAll,
     applyDefaults,
     activeFilterCount,
-  } = useSortFilter(documents);
+  } = useSortFilter(searchedDocuments);
   // TODO: Search filtering will be implemented in Phase 7
   // For now, display all documents
+
+  // ADD: Filter documents based on search query
+
+  // Determine empty state messaging
+  const isSearchActive = searchQuery.trim().length > 0;
+  const hasNoResults = filteredDocuments.length === 0;
+
+  // Dynamic empty state props
+  const emptyIcon = hasNoResults && isSearchActive ? "file-search-outline" : "file-document-outline";
+  const emptyTitle = hasNoResults && isSearchActive
+    ? `No results for "${searchQuery}"`
+    : "No documents found";
+  const emptySubtitle = hasNoResults && isSearchActive
+    ? "Try a different search term"
+    : "Start adding documents using the + button";
+
 
   const handleDocumentPress = (doc: Document) => {
     router.push({ pathname: `/document/${doc.id}`, params: { source: 'all-docs' } });
@@ -59,14 +79,16 @@ export default function AllDocsScreen() {
 
       {/* MODIFIED: Document List replaces empty state */}
       {/* MODIFIED: Use filteredDocuments instead of documents */}
+      <View style={styles.placeholderText}>
       <DocumentList
         documents={filteredDocuments}
-        emptyIcon="file-document-outline"
-        emptyTitle="No documents found"
-        emptySubtitle="Start adding documents using the + button"
+        emptyIcon={emptyIcon}
+        emptyTitle={emptyTitle}
+        emptySubtitle={emptySubtitle}
         onDocumentPress={handleDocumentPress}
         onStarPress={(doc) => toggleStar(doc.id)}
       />
+      </View>
       {/* ADDED: Sort/Filter Bottom Sheet */}
       <SortFilterSheet
         visible={filterSheetVisible}
@@ -93,5 +115,8 @@ const styles = StyleSheet.create({
   searchbar: {
     elevation: 0,
   },
+  placeholderText :{
+    color: 'black'
+  }
   // REMOVED: content, emptyText, emptySubtext styles (now handled by DocumentList)
 });

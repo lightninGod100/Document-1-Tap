@@ -12,6 +12,9 @@ import { Document } from '../src/types';
 // ADDED: Import for sort/filter
 import { useSortFilter } from '../src/hooks/useSortFilter';
 import { SortFilterSheet } from '../src/components/SortFilterSheet';
+import { searchDocuments } from '../src/utils/searchUtils';
+
+
 
 export default function CategoryDetailScreen() {
   const router = useRouter();
@@ -31,7 +34,7 @@ export default function CategoryDetailScreen() {
   // Get documents for this category
   const categoryDocuments = categoryId ? getDocumentsByCategory(categoryId) : [];
 
-
+  const searchedDocuments = searchDocuments(categoryDocuments, searchQuery, categories);
   // TODO: Search filtering will be implemented in Phase 7
   const [filterSheetVisible, setFilterSheetVisible] = useState(false);
   const {
@@ -42,7 +45,7 @@ export default function CategoryDetailScreen() {
     setFilterValue,
     clearAll,
     applyDefaults,
-  } = useSortFilter(categoryDocuments);
+  } = useSortFilter(searchedDocuments);
   // Handle case where category is not found
   if (!category) {
     return (
@@ -60,6 +63,20 @@ export default function CategoryDetailScreen() {
   const handleDocumentPress = (doc: Document) => {
     router.push(`/document/${doc.id}`);
   };
+
+  // Determine empty state messaging
+  const isSearchActive = searchQuery.trim().length > 0;
+  const hasNoResults = filteredDocuments.length === 0;
+
+  // Dynamic empty state props
+  const emptyIcon = hasNoResults && isSearchActive ? "file-search-outline" : "file-document-outline";
+  const emptyTitle = hasNoResults && isSearchActive
+    ? `No results for "${searchQuery}"`
+    : "No documents found";
+  const emptySubtitle = hasNoResults && isSearchActive
+    ? "Try a different search term"
+    : "Start adding documents using the + button";
+
   return (
     <View style={styles.container}>
       {/* Header with Category Icon + Name */}
@@ -104,9 +121,9 @@ export default function CategoryDetailScreen() {
       {/* Document List */}
       <DocumentList
         documents={filteredDocuments}
-        emptyIcon={category.icon}
-        emptyTitle={`No documents in ${category.name}`}
-        emptySubtitle="Add documents using the + button"
+        emptyIcon={emptyIcon}
+        emptyTitle={emptyTitle}
+        emptySubtitle={emptySubtitle}
         // onDocumentPress, onStarPress, onMenuPress, onCopyPress → Phase 6
         onDocumentPress={handleDocumentPress}
         onStarPress={(doc) => toggleStar(doc.id)}
