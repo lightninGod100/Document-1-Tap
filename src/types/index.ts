@@ -35,3 +35,48 @@ export type RootStackParamList = {
   PINSetup: undefined;                       // First-time PIN setup
   AuthScreen: undefined;                     // Biometric/PIN authentication
 };
+
+
+// ============================================
+// ADDED: Sort & Filter Types for Document List
+// ============================================
+
+// Sort field options
+export type SortField = 'name' | 'createdAt' | 'category';
+
+// Sort direction - null means not selected for this field
+export type SortDirection = 'asc' | 'desc';
+
+// Individual sort criterion with field and direction
+export interface SortCriterion {
+  field: SortField;
+  direction: SortDirection;
+}
+
+// Sort configuration - ordered array for multi-level sorting
+// First item = primary sort, second = secondary (tie-breaker), etc.
+export interface SortConfig {
+  criteria: SortCriterion[];
+}
+
+// Filter option values
+export type FilterValue = 'yes' | 'no' | 'all';
+
+// Filter configuration for document list
+export interface FilterConfig {
+  documentAttached: FilterValue;  // Has fileUri
+  notesAttached: FilterValue;     // Has notes
+  documentNo: FilterValue;        // Has documentNumber
+}
+
+// Default sort: Date Created Descending (newest first)
+export const DEFAULT_SORT_CONFIG: SortConfig = {
+  criteria: [{ field: 'createdAt', direction: 'desc' }],
+};
+
+// Default filter: Show all documents
+export const DEFAULT_FILTER_CONFIG: FilterConfig = {
+  documentAttached: 'all',
+  notesAttached: 'all',
+  documentNo: 'all',
+};

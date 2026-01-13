@@ -7,13 +7,30 @@ import { Appbar, Searchbar } from 'react-native-paper';
 import { DocumentList } from '../../src/components/DocumentList';
 import { useDocuments } from '../../src/contexts/DocumentContext';
 import { useRouter } from 'expo-router';
+// ADDED: Import for sort/filter
+import { useSortFilter } from '../../src/hooks/useSortFilter';
+import { SortFilterSheet } from '../../src/components/SortFilterSheet';
 
 export default function AllDocsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
-  const { documents, isLoading,toggleStar } = useDocuments(); // ADDED: Get documents from context
+  const { documents, isLoading, toggleStar } = useDocuments(); // ADDED: Get documents from context
+  const [filterSheetVisible, setFilterSheetVisible] = useState(false);
   const router = useRouter();
+
+  // ADDED: Sort/Filter hook
+  const {
+    filteredDocuments,
+    sortConfig,
+    filterConfig,
+    setSortField,
+    setFilterValue,
+    clearAll,
+    applyDefaults,
+    activeFilterCount,
+  } = useSortFilter(documents);
   // TODO: Search filtering will be implemented in Phase 7
   // For now, display all documents
+
   const handleDocumentPress = (doc: Document) => {
     router.push({ pathname: `/document/${doc.id}`, params: { source: 'all-docs' } });
   };
@@ -21,8 +38,13 @@ export default function AllDocsScreen() {
   return (
     <View style={styles.container}>
       {/* App Header */}
+      {/* App Header - MODIFIED: Added filter action */}
       <Appbar.Header>
         <Appbar.Content title="All Documents" />
+        <Appbar.Action
+          icon="filter-variant"
+          onPress={() => setFilterSheetVisible(true)}
+        />
       </Appbar.Header>
 
       {/* Search Bar (visual only for now - Phase 7) */}
@@ -36,14 +58,25 @@ export default function AllDocsScreen() {
       </View>
 
       {/* MODIFIED: Document List replaces empty state */}
+      {/* MODIFIED: Use filteredDocuments instead of documents */}
       <DocumentList
-        documents={documents}
+        documents={filteredDocuments}
         emptyIcon="file-document-outline"
         emptyTitle="No documents found"
         emptySubtitle="Start adding documents using the + button"
-        // onDocumentPress, onStarPress, onMenuPress, onCopyPress → Phase 6
-        onDocumentPress={handleDocumentPress} 
-        onStarPress={(doc) => toggleStar(doc.id)} 
+        onDocumentPress={handleDocumentPress}
+        onStarPress={(doc) => toggleStar(doc.id)}
+      />
+      {/* ADDED: Sort/Filter Bottom Sheet */}
+      <SortFilterSheet
+        visible={filterSheetVisible}
+        onDismiss={() => setFilterSheetVisible(false)}
+        sortConfig={sortConfig}
+        onSortChange={setSortField}
+        filterConfig={filterConfig}
+        onFilterChange={setFilterValue}
+        onClear={clearAll}
+        onApply={() => setFilterSheetVisible(false)}
       />
     </View>
   );

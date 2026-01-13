@@ -9,6 +9,9 @@ import { DocumentList } from '../src/components/DocumentList';
 import { useCategories } from '../src/contexts/CategoryContext';
 import { useDocuments } from '../src/contexts/DocumentContext';
 import { Document } from '../src/types';
+// ADDED: Import for sort/filter
+import { useSortFilter } from '../src/hooks/useSortFilter';
+import { SortFilterSheet } from '../src/components/SortFilterSheet';
 
 export default function CategoryDetailScreen() {
   const router = useRouter();
@@ -28,8 +31,18 @@ export default function CategoryDetailScreen() {
   // Get documents for this category
   const categoryDocuments = categoryId ? getDocumentsByCategory(categoryId) : [];
 
-  // TODO: Search filtering will be implemented in Phase 7
 
+  // TODO: Search filtering will be implemented in Phase 7
+  const [filterSheetVisible, setFilterSheetVisible] = useState(false);
+  const {
+    filteredDocuments,
+    sortConfig,
+    filterConfig,
+    setSortField,
+    setFilterValue,
+    clearAll,
+    applyDefaults,
+  } = useSortFilter(categoryDocuments);
   // Handle case where category is not found
   if (!category) {
     return (
@@ -50,6 +63,7 @@ export default function CategoryDetailScreen() {
   return (
     <View style={styles.container}>
       {/* Header with Category Icon + Name */}
+      {/* MODIFIED: Added filter action */}
       <Appbar.Header>
         <Appbar.BackAction onPress={() => router.back()} />
         <View style={styles.headerContent}>
@@ -71,6 +85,10 @@ export default function CategoryDetailScreen() {
             {category.name}
           </Text>
         </View>
+        <Appbar.Action
+          icon="filter-variant"
+          onPress={() => setFilterSheetVisible(true)}
+        />
       </Appbar.Header>
 
       {/* Search Bar (placeholder for Phase 7) */}
@@ -85,13 +103,24 @@ export default function CategoryDetailScreen() {
 
       {/* Document List */}
       <DocumentList
-        documents={categoryDocuments}
+        documents={filteredDocuments}
         emptyIcon={category.icon}
         emptyTitle={`No documents in ${category.name}`}
         emptySubtitle="Add documents using the + button"
         // onDocumentPress, onStarPress, onMenuPress, onCopyPress → Phase 6
         onDocumentPress={handleDocumentPress}
         onStarPress={(doc) => toggleStar(doc.id)}
+      />
+      {/* ADDED: Sort/Filter Bottom Sheet */}
+      <SortFilterSheet
+        visible={filterSheetVisible}
+        onDismiss={() => setFilterSheetVisible(false)}
+        sortConfig={sortConfig}
+        onSortChange={setSortField}
+        filterConfig={filterConfig}
+        onFilterChange={setFilterValue}
+        onClear={clearAll}
+        onApply={() => setFilterSheetVisible(false)}
       />
     </View>
   );

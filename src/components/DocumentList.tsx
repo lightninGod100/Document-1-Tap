@@ -1,6 +1,6 @@
 // src/components/DocumentList.tsx
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -38,12 +38,6 @@ export function DocumentList({
   const theme = useTheme();
   const { categories } = useCategories();
 
-  // ============================================
-  // SORT: By createdAt descending (newest first)
-  // ============================================
-  const sortedDocuments = useMemo(() => {
-    return [...documents].sort((a, b) => b.createdAt - a.createdAt);
-  }, [documents]);
 
   // ============================================
   // HELPER: Resolve categoryId → categoryName
@@ -98,14 +92,14 @@ export function DocumentList({
   // ============================================
   return (
     <FlatList
-      data={sortedDocuments}
+      data={documents}
       keyExtractor={(item) => item.id}
       renderItem={renderDocumentItem}
       ListEmptyComponent={renderEmptyState}
       contentContainerStyle={[
         styles.listContent,
         // Center empty state if list is empty
-        sortedDocuments.length === 0 && styles.emptyListContent,
+        documents.length === 0 && styles.emptyListContent,
       ]}
       showsVerticalScrollIndicator={false}
     />
