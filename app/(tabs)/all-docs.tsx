@@ -79,7 +79,7 @@ export default function AllDocsScreen() {
 
       {/* MODIFIED: Document List replaces empty state */}
       {/* MODIFIED: Use filteredDocuments instead of documents */}
-      <View style={styles.placeholderText}>
+      
       <DocumentList
         documents={filteredDocuments}
         emptyIcon={emptyIcon}
@@ -88,7 +88,7 @@ export default function AllDocsScreen() {
         onDocumentPress={handleDocumentPress}
         onStarPress={(doc) => toggleStar(doc.id)}
       />
-      </View>
+     
       {/* ADDED: Sort/Filter Bottom Sheet */}
       <SortFilterSheet
         visible={filterSheetVisible}

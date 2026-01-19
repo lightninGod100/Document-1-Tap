@@ -4,9 +4,9 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Storage keys
-const BIOMETRIC_ENABLED_KEY = '@doc1tap_biometric_available';
+// ============ Storage Keys ============
 const SECURE_PIN_KEY = 'doc1tap_user_pin';
+// DELETED: BIOMETRIC_ENABLED_KEY (was unused)
 
 // ============ PIN Management ============
 
@@ -112,35 +112,60 @@ export const getBiometricTypeName = async (): Promise<string> => {
 };
 
 /**
- * Prompt biometric authentication
+ * Prompt biometric authentication for app access
+ * OS handles everything including fallback to device PIN/pattern
+ * 
+ * MODIFIED: disableDeviceFallback = false (OS handles fallback)
  */
 export const authenticateWithBiometric = async (): Promise<{
   success: boolean;
-  error?: string;
 }> => {
   try {
     const result = await LocalAuthentication.authenticateAsync({
-      promptMessage: 'Authenticate to access Document 1 Tap',
-      fallbackLabel: 'Use PIN',
-      disableDeviceFallback: true, // We handle PIN fallback ourselves
+      promptMessage: 'Unlock to continue',
+      disableDeviceFallback: false, // CHANGED: Let OS handle device PIN/pattern fallback
       cancelLabel: 'Cancel',
     });
 
-   // ... existing code ...
-   return {
-    success: result.success,
-    error: result.success ? undefined : result.error,
-  };
-// ... existing code ...
+    return {
+      success: result.success,
+    };
   } catch (error) {
+    console.error('Biometric authentication error:', error);
     return {
       success: false,
-      error: 'Biometric authentication failed',
     };
   }
 };
 
-// ============ Lockout Management ============
+/**
+ * Prompt biometric authentication specifically for sharing documents
+ * Always requires biometric - no fallback, no PIN
+ * 
+ * ADDED: New function for share action
+ */
+export const authenticateForShare = async (): Promise<{
+  success: boolean;
+}> => {
+  try {
+    const result = await LocalAuthentication.authenticateAsync({
+      promptMessage: 'Authenticate to share document',
+      disableDeviceFallback: false, // OS handles fallback
+      cancelLabel: 'Cancel',
+    });
+
+    return {
+      success: result.success,
+    };
+  } catch (error) {
+    console.error('Share authentication error:', error);
+    return {
+      success: false,
+    };
+  }
+};
+
+// ============ Lockout Management (PIN only) ============
 
 const LOCKOUT_KEY = '@doc1tap_lockout_until';
 const FAILED_ATTEMPTS_KEY = '@doc1tap_failed_attempts';
@@ -163,7 +188,7 @@ export const recordFailedAttempt = async (): Promise<{
   isLockedOut: boolean;
   attemptsRemaining: number;
   lockoutEndTime?: number;
-}> => {
+ }> => {
   const currentAttempts = await getFailedAttempts();
   const newAttempts = currentAttempts + 1;
   

@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useCallback } from 'react';
 import { AppState, AppStateStatus } from 'react-native';
 import {
-    hasPINSetup,
+  hasPINSetup,
   isBiometricAvailable,
   getBiometricTypeName,
 } from '../utils/auth';
@@ -16,11 +16,13 @@ interface AuthContextType {
   isLoading: boolean;
   hasBiometrics: boolean;
   biometricTypeName: string;
+  requiresPinEntry: boolean; // ADDED: Whether PIN screen should show after biometric
   
   // Actions
   unlock: () => void;
   lock: () => void;
   completeSetup: () => void;
+  completeBiometricAuth: (needsPin: boolean) => void; // ADDED: Called after OS biometric
   refreshAuthState: () => Promise<void>;
 }
 
@@ -28,7 +30,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // ============ Constants ============
-const BACKGROUND_GRACE_PERIOD_MS = 30 * 1000; // 30 seconds
+const GRACE_PERIOD_MS = 30 * 1000; // 30 seconds - no auth needed
+const FULL_REAUTH_PERIOD_MS = 120 * 1000; // 120 seconds - biometric + PIN needed
 
 // ============ Provider ============
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -36,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isFirstLaunch, setIsFirstLaunch] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [requiresPinEntry, setRequiresPinEntry] = useState(true); // ADDED: Default true for cold start
   
   // Biometric state
   const [hasBiometrics, setHasBiometrics] = useState(false);
@@ -63,15 +67,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setBiometricTypeName(typeName);
       }
       
-      // If first launch, user needs to set up PIN first
-      // If returning user, they need to authenticate
-      // Either way, start as not authenticated
+      // Cold start - always require full auth (biometric + PIN)
       setIsAuthenticated(false);
+      setRequiresPinEntry(true); // ADDED: Cold start always needs PIN
       
     } catch (error) {
       console.error('Failed to initialize auth:', error);
       setIsFirstLaunch(true);
       setIsAuthenticated(false);
+      setRequiresPinEntry(true);
     } finally {
       setIsLoading(false);
     }
@@ -89,19 +93,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // ============ Auth Actions ============
+  
+  /**
+   * Full unlock - called when all required auth is complete
+   */
   const unlock = useCallback(() => {
     setIsAuthenticated(true);
+    setRequiresPinEntry(false);
     backgroundTimeRef.current = null; // Reset background timer
   }, []);
 
+  /**
+   * Lock the app - requires re-authentication
+   */
   const lock = useCallback(() => {
     setIsAuthenticated(false);
+    setRequiresPinEntry(true);
   }, []);
 
+  /**
+   * Complete first-time setup - auto unlock after PIN creation
+   */
   const completeSetup = useCallback(() => {
     setIsFirstLaunch(false);
-    setIsAuthenticated(true); // Auto-unlock after setup
+    setIsAuthenticated(true);
+    setRequiresPinEntry(false);
     backgroundTimeRef.current = null;
+  }, []);
+
+  /**
+   * ADDED: Called after OS biometric succeeds
+   * @param needsPin - whether PIN entry is still required
+   */
+  const completeBiometricAuth = useCallback((needsPin: boolean) => {
+    if (needsPin) {
+      // Biometric done, but still need PIN (>120s timeout or cold start)
+      setRequiresPinEntry(true);
+      // Don't set isAuthenticated yet - wait for PIN
+    } else {
+      // Biometric only was needed (30s-120s timeout)
+      setIsAuthenticated(true);
+      setRequiresPinEntry(false);
+      backgroundTimeRef.current = null;
+    }
   }, []);
 
   // ============ App State Handler (Background/Foreground) ============
@@ -109,7 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const handleAppStateChange = (nextAppState: AppStateStatus) => {
       const previousState = appStateRef.current;
       
-      // App going to background
+      // App going to background - record timestamp
       if (
         previousState === 'active' && 
         (nextAppState === 'inactive' || nextAppState === 'background')
@@ -117,20 +151,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         backgroundTimeRef.current = Date.now();
       }
       
-      // App coming to foreground
+      // App coming to foreground - check timeout tier
       if (
         (previousState === 'inactive' || previousState === 'background') && 
         nextAppState === 'active'
       ) {
-        // Check if grace period has passed
         if (backgroundTimeRef.current !== null) {
           const timeInBackground = Date.now() - backgroundTimeRef.current;
           
-          if (timeInBackground > BACKGROUND_GRACE_PERIOD_MS) {
-            // Grace period exceeded - require re-authentication
+          // MODIFIED: Tiered timeout logic
+          if (timeInBackground < GRACE_PERIOD_MS) {
+            // < 30 seconds: No auth needed, stay authenticated
+            // Do nothing - keep current auth state
+          } else if (timeInBackground < FULL_REAUTH_PERIOD_MS) {
+            // 30s - 120s: Biometric only (no PIN)
             setIsAuthenticated(false);
+            setRequiresPinEntry(false); // KEY: No PIN needed
+          } else {
+            // > 120 seconds: Full re-auth (biometric + PIN)
+            setIsAuthenticated(false);
+            setRequiresPinEntry(true); // KEY: PIN required after biometric
           }
-          // If within grace period, stay authenticated
         }
         backgroundTimeRef.current = null;
       }
@@ -158,11 +199,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoading,
     hasBiometrics,
     biometricTypeName,
+    requiresPinEntry, // ADDED
     
     // Actions
     unlock,
     lock,
     completeSetup,
+    completeBiometricAuth, // ADDED
     refreshAuthState,
   };
 

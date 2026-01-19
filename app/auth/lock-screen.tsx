@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { StyleSheet, View, Animated, BackHandler } from 'react-native';
-import { Text, Button, useTheme, ActivityIndicator } from 'react-native-paper';
+import { Text, useTheme, ActivityIndicator } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 
@@ -17,19 +17,17 @@ import {
   resetFailedAttempts,
 } from '../../src/utils/auth';
 
-type AuthMode = 'biometric' | 'pin';
-
 export default function LockScreen() {
   const theme = useTheme();
-  const { unlock, hasBiometrics, biometricTypeName } = useAuth();
+  const { unlock, requiresPinEntry, completeBiometricAuth } = useAuth();
 
-  // State
-  const [mode, setMode] = useState<AuthMode>(hasBiometrics ? 'biometric' : 'pin');
+  // State - PIN only (biometric handled by OS)
   const [pin, setPin] = useState('');
   const [error, setError] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [attemptsRemaining, setAttemptsRemaining] = useState(5);
+  const [showPinEntry, setShowPinEntry] = useState(false); // Controls when to show PIN UI
   
   // Lockout state
   const [isLockedOut, setIsLockedOut] = useState(false);
@@ -67,6 +65,7 @@ export default function LockScreen() {
           if (prev <= 1) {
             setIsLockedOut(false);
             clearLockout();
+            setErrorMessage('');  
             return 0;
           }
           return prev - 1;
@@ -79,18 +78,20 @@ export default function LockScreen() {
     };
   }, [isLockedOut, lockoutSeconds]);
 
-  // ============ Initial Setup ============
+  // ============ Trigger OS Biometric on Mount ============
   useEffect(() => {
-    checkLockout();
-    
-    // Auto-trigger biometric on mount if available
-    if (hasBiometrics) {
-      // Small delay to let screen render first
-      const timer = setTimeout(() => {
-        handleBiometricAuth();
-      }, 500);
+    const initAuth = async () => {
+      await checkLockout();
+      
+      // Small delay to let screen render
+      const timer = setTimeout(async () => {
+        await handleBiometricAuth();
+      }, 300);
+      
       return () => clearTimeout(timer);
-    }
+    };
+    
+    initAuth();
   }, []);
 
   // ============ Prevent Back Button (Android) ============
@@ -110,35 +111,44 @@ export default function LockScreen() {
     }
   }, [pin]);
 
-  // ============ Biometric Authentication ============
+  // ============ OS Biometric Authentication ============
   const handleBiometricAuth = async () => {
-    if (isProcessing || isLockedOut) return;
+    if (isProcessing) return;
 
     try {
       setIsProcessing(true);
-      setError(false);
-      setErrorMessage('');
 
       const result = await authenticateWithBiometric();
 
       if (result.success) {
+        // Biometric succeeded
         await resetFailedAttempts();
-        unlock();
-      } else {
-        // Biometric failed or cancelled - show PIN option
-        // Don't count as failed attempt (user might have cancelled)
-        if (result.error === 'user_cancel' || result.error === 'system_cancel') {
-          // User cancelled - just switch to PIN mode
-          setMode('pin');
+        
+        if (requiresPinEntry) {
+          // Need PIN after biometric (cold start or >120s)
+          completeBiometricAuth(true);
+          setShowPinEntry(true);
         } else {
-          // Actual failure
-          setErrorMessage(`${biometricTypeName} failed. Use PIN instead.`);
-          setMode('pin');
+          // Biometric only was needed (30s-120s timeout)
+          completeBiometricAuth(false);
+          unlock();
+        }
+      } else {
+        // Biometric failed/cancelled by OS
+        // OS already showed error - if PIN required, show PIN entry
+        if (requiresPinEntry) {
+          setShowPinEntry(true);
+        } else {
+          // For biometric-only flow, retry or stay on screen
+          // User can trigger again by coming back to app
+          setShowPinEntry(false);
         }
       }
     } catch (err) {
       console.error('Biometric auth error:', err);
-      setMode('pin');
+      if (requiresPinEntry) {
+        setShowPinEntry(true);
+      }
     } finally {
       setIsProcessing(false);
     }
@@ -190,86 +200,8 @@ export default function LockScreen() {
     }
   };
 
-  // ============ Switch to PIN Mode ============
-  const switchToPinMode = () => {
-    setMode('pin');
-    setError(false);
-    setErrorMessage('');
-    setPin('');
-  };
-
-  // ============ Retry Biometric ============
-  const retryBiometric = () => {
-    setMode('biometric');
-    setError(false);
-    setErrorMessage('');
-    setPin('');
-    handleBiometricAuth();
-  };
-
-  // ============ Get Biometric Icon ============
-  const getBiometricIcon = (): string => {
-    if (biometricTypeName === 'Face ID') {
-      return 'face-recognition';
-    }
-    return 'fingerprint';
-  };
-
-  // ============ Render Biometric Mode ============
-  const renderBiometricMode = () => (
-    <View style={styles.biometricContainer}>
-      {/* Biometric Icon */}
-      <View style={[styles.biometricIconContainer, { backgroundColor: theme.colors.primaryContainer }]}>
-        <MaterialCommunityIcons
-          name={getBiometricIcon() as any}
-          size={64}
-          color={theme.colors.primary}
-        />
-      </View>
-
-      {/* Instructions */}
-      <Text variant="titleMedium" style={[styles.biometricTitle, { color: theme.colors.onBackground }]}>
-        {isProcessing ? 'Authenticating...' : `Use ${biometricTypeName}`}
-      </Text>
-      
-      <Text variant="bodyMedium" style={[styles.biometricSubtitle, { color: theme.colors.onSurfaceVariant }]}>
-        {isProcessing 
-          ? 'Please wait...' 
-          : `Tap below to authenticate with ${biometricTypeName}`
-        }
-      </Text>
-
-      {/* Retry Biometric Button */}
-      {!isProcessing && (
-        <Button
-          mode="contained"
-          onPress={handleBiometricAuth}
-          style={styles.biometricButton}
-          icon={getBiometricIcon()}
-        >
-          Use {biometricTypeName}
-        </Button>
-      )}
-
-      {/* Processing Indicator */}
-      {isProcessing && (
-        <ActivityIndicator size="large" color={theme.colors.primary} style={{ marginTop: 24 }} />
-      )}
-
-      {/* Switch to PIN */}
-      <Button
-        mode="text"
-        onPress={switchToPinMode}
-        style={styles.switchButton}
-        disabled={isProcessing}
-      >
-        Use PIN instead
-      </Button>
-    </View>
-  );
-
-  // ============ Render PIN Mode ============
-  const renderPinMode = () => (
+  // ============ Render PIN Entry ============
+  const renderPinEntry = () => (
     <View style={styles.pinContainer}>
       {/* Lockout State */}
       {isLockedOut ? (
@@ -309,19 +241,16 @@ export default function LockScreen() {
           )}
         </>
       )}
+    </View>
+  );
 
-      {/* Switch to Biometric (if available) */}
-      {hasBiometrics && !isLockedOut && (
-        <Button
-          mode="text"
-          onPress={retryBiometric}
-          style={styles.switchButton}
-          disabled={isProcessing}
-          icon={getBiometricIcon()}
-        >
-          Use {biometricTypeName}
-        </Button>
-      )}
+  // ============ Render Waiting for Biometric ============
+  const renderWaitingForBiometric = () => (
+    <View style={styles.waitingContainer}>
+      <ActivityIndicator size="large" color={theme.colors.primary} />
+      <Text variant="bodyMedium" style={[styles.waitingText, { color: theme.colors.onSurfaceVariant }]}>
+        Waiting for authentication...
+      </Text>
     </View>
   );
 
@@ -339,18 +268,26 @@ export default function LockScreen() {
         <Text variant="headlineSmall" style={[styles.appTitle, { color: theme.colors.onBackground }]}>
           Document 1 Tap
         </Text>
-        <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant }}>
-          {mode === 'biometric' ? 'Unlock to access your documents' : 'Enter your PIN'}
-        </Text>
+        
+        {/* MODIFIED: New subtitle message */}
+        {showPinEntry ? (
+          <Text variant="bodyMedium" style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
+            We're making sure it's you, not some imposter
+          </Text>
+        ) : (
+          <Text variant="bodyMedium" style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
+            Unlock to access your documents
+          </Text>
+        )}
       </View>
 
-      {/* Auth Content */}
+      {/* Content */}
       <View style={styles.content}>
-        {mode === 'biometric' ? renderBiometricMode() : renderPinMode()}
+        {showPinEntry ? renderPinEntry() : renderWaitingForBiometric()}
       </View>
 
       {/* Error Message */}
-      {errorMessage && !isLockedOut ? (
+      {errorMessage && !isLockedOut && showPinEntry ? (
         <View style={styles.errorContainer}>
           <Text variant="bodyMedium" style={{ color: theme.colors.error, textAlign: 'center' }}>
             {errorMessage}
@@ -382,7 +319,11 @@ const styles = StyleSheet.create({
   },
   appTitle: {
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 8,
+  },
+  subtitle: {
+    textAlign: 'center',
+    paddingHorizontal: 16,
   },
   // Content
   content: {
@@ -390,31 +331,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 24,
   },
-  // Biometric Mode
-  biometricContainer: {
-    alignItems: 'center',
-  },
-  biometricIconContainer: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  biometricTitle: {
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  biometricSubtitle: {
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  biometricButton: {
-    marginTop: 8,
-    minWidth: 200,
-  },
-  // PIN Mode
+  // PIN Container
   pinContainer: {
     alignItems: 'center',
   },
@@ -431,9 +348,14 @@ const styles = StyleSheet.create({
   lockoutTimer: {
     textAlign: 'center',
   },
-  // Switch Button
-  switchButton: {
-    marginTop: 24,
+  // Waiting for Biometric
+  waitingContainer: {
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  waitingText: {
+    marginTop: 16,
+    textAlign: 'center',
   },
   // Error
   errorContainer: {
