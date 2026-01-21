@@ -29,6 +29,9 @@ import {
   TouchableRipple,
   useTheme,
 } from 'react-native-paper';
+// ADDED: Import authenticateForShare
+import { authenticateForShare } from '../../src/utils/auth';
+
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCategories } from '../../src/contexts/CategoryContext';
@@ -136,7 +139,12 @@ export default function DocumentDetailScreen() {
       showSnackbar('No file to share');
       return;
     }
-
+    // ADDED: Biometric authentication before sharing
+    const authResult = await authenticateForShare();
+    if (!authResult.success) {
+      // User cancelled or auth failed - silently abort, stay on screen
+      return;
+    }
     // Check if sharing is available
     const isAvailable = await Sharing.isAvailableAsync();
     if (!isAvailable) {
