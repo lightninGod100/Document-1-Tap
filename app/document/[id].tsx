@@ -74,23 +74,6 @@ export default function DocumentDetailScreen() {
   }, [document?.fileUri]);
 
   // Handle case where document not found
-  if (!document) {
-    return (
-      <View style={[styles.container, styles.centerContent]}>
-        <MaterialCommunityIcons
-          name="file-alert-outline"
-          size={64}
-          color={theme.colors.error}
-        />
-        <Text variant="titleMedium" style={{ marginTop: 16 }}>
-          Document not found
-        </Text>
-        <Button mode="contained" onPress={() => router.back()} style={{ marginTop: 24 }}>
-          Go Back
-        </Button>
-      </View>
-    );
-  }
 
   // ============================================
   // HANDLERS
@@ -111,6 +94,25 @@ export default function DocumentDetailScreen() {
       };
     }, [source])
   );
+
+  if (!document) {
+    return (
+      <View style={[styles.container, styles.centerContent]}>
+        <MaterialCommunityIcons
+          name="file-alert-outline"
+          size={64}
+          color={theme.colors.error}
+        />
+        <Text variant="titleMedium" style={{ marginTop: 16 }}>
+          Document not found
+        </Text>
+        <Button mode="contained" onPress={() => router.back()} style={{ marginTop: 24 }}>
+          Go Back
+        </Button>
+      </View>
+    );
+  }
+
   const handleBack = () => {
     if (source === 'all-docs') {
       router.replace('/(tabs)/all-docs');
@@ -172,7 +174,7 @@ export default function DocumentDetailScreen() {
     setDeleteDialogVisible(false);
     try {
       await deleteDocument(document.id);
-      router.back();
+      handleBack();
     } catch (error) {
       console.error('Delete error:', error);
       showSnackbar('Failed to delete document');
