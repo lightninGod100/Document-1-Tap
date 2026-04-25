@@ -6,7 +6,7 @@
 // - Added Snackbar for success/error feedback
 
 import React, { useState } from 'react'; // MODIFIED: Added React + useState
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import {
   Appbar,
   Button,
@@ -129,38 +129,126 @@ export default function SettingsScreen() {
       </Appbar.Header>
 
       {/* Settings List */}
-      <List.Section>
-        <List.Subheader>Appearance</List.Subheader>
-        <List.Item
-          title="Theme"
-          description="Light"
-          left={(props) => <List.Icon {...props} icon="theme-light-dark" />}
-          right={(props) => <List.Icon {...props} icon="chevron-right" />}
-          onPress={() => {}}
-        />
+{/* MODIFIED: Expanded settings list - wrapped in ScrollView for overflow */}
+<ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <List.Section>
+          {/* ===== Appearance ===== */}
+          <List.Subheader>Appearance</List.Subheader>
+          <List.Item
+            title="Theme"
+            description="System" // MODIFIED: Was "Light" - placeholder until theme switcher wired
+            left={(props) => <List.Icon {...props} icon="theme-light-dark" />}
+            right={(props) => <List.Icon {...props} icon="chevron-right" />}
+            onPress={() => {}} // No-op: UI only
+          />
 
-        <Divider />
+          <Divider />
 
-        <List.Subheader>Data</List.Subheader>
-        <List.Item
-          title="Clear All Data"
-          description="Delete all documents and categories"
-          left={(props) => (
-            <List.Icon {...props} icon="delete-outline" color={theme.colors.error} />
-          )}
-          right={(props) => <List.Icon {...props} icon="chevron-right" />}
-          onPress={handleClearAllPressed} // MODIFIED: Was empty handler
-        />
+          {/* ADDED: Security section */}
+          <List.Subheader>Security</List.Subheader>
+          <List.Item
+            title="Change PIN"
+            description="Update your 4-digit PIN"
+            left={(props) => <List.Icon {...props} icon="lock-reset" />}
+            right={(props) => <List.Icon {...props} icon="chevron-right" />}
+            onPress={() => {}} // No-op: UI only
+          />
+          <List.Item
+            title="Remove PIN"
+            description="Disable PIN authentication"
+            left={(props) => <List.Icon {...props} icon="lock-off-outline" />}
+            right={(props) => <List.Icon {...props} icon="chevron-right" />}
+            onPress={() => {}} // No-op: UI only
+          />
 
-        <Divider />
+          <Divider />
 
-        <List.Subheader>About</List.Subheader>
-        <List.Item
-          title="Version"
-          description="1.0.0"
-          left={(props) => <List.Icon {...props} icon="information-outline" />}
-        />
-      </List.Section>
+          {/* ===== Data (existing - kept wired) ===== */}
+          <List.Subheader>Data</List.Subheader>
+          <List.Item
+            title="Clear All Data"
+            description="Delete all documents and categories"
+            left={(props) => (
+              <List.Icon {...props} icon="delete-outline" color={theme.colors.error} />
+            )}
+            right={(props) => <List.Icon {...props} icon="chevron-right" />}
+            onPress={handleClearAllPressed} // Existing wired handler
+          />
+
+          <Divider />
+
+          {/* ADDED: Share section */}
+          <List.Subheader>Share</List.Subheader>
+          <List.Item
+            title="Share App"
+            description="Tell others about Document 1 Tap"
+            left={(props) => <List.Icon {...props} icon="share-variant-outline" />}
+            right={(props) => <List.Icon {...props} icon="chevron-right" />}
+            onPress={() => {}} // No-op: UI only
+          />
+          <List.Item
+            title="Rate App"
+            description="Rate us on the Play Store"
+            left={(props) => <List.Icon {...props} icon="star-outline" />}
+            right={(props) => <List.Icon {...props} icon="chevron-right" />}
+            onPress={() => {}} // No-op: UI only
+          />
+
+          <Divider />
+
+          {/* ADDED: Support section */}
+          <List.Subheader>Support</List.Subheader>
+          <List.Item
+            title="FAQs"
+            description="Frequently asked questions"
+            left={(props) => <List.Icon {...props} icon="help-circle-outline" />}
+            right={(props) => <List.Icon {...props} icon="chevron-right" />}
+            onPress={() => {}} // No-op: UI only
+          />
+          <List.Item
+            title="Reach Us"
+            description="Get in touch with our team"
+            left={(props) => <List.Icon {...props} icon="email-outline" />}
+            right={(props) => <List.Icon {...props} icon="chevron-right" />}
+            onPress={() => {}} // No-op: UI only
+          />
+
+          <Divider />
+
+          {/* ADDED: Legal section */}
+          <List.Subheader>Legal</List.Subheader>
+          <List.Item
+            title="Privacy Policy"
+            description="How we handle your data"
+            left={(props) => <List.Icon {...props} icon="shield-lock-outline" />}
+            right={(props) => <List.Icon {...props} icon="chevron-right" />}
+            onPress={() => {}} // No-op: UI only
+          />
+          <List.Item
+            title="Terms of Service"
+            description="Terms and conditions"
+            left={(props) => <List.Icon {...props} icon="file-document-outline" />}
+            right={(props) => <List.Icon {...props} icon="chevron-right" />}
+            onPress={() => {}} // No-op: UI only
+          />
+
+          <Divider />
+
+          {/* MODIFIED: About section - now tappable row instead of inline version */}
+          <List.Subheader>About</List.Subheader>
+          <List.Item
+            title="About"
+            description="Version 1.0.0"
+            left={(props) => <List.Icon {...props} icon="information-outline" />}
+            right={(props) => <List.Icon {...props} icon="chevron-right" />}
+            onPress={() => {}} // No-op: UI only
+          />
+        </List.Section>
+      </ScrollView>
 
       {/* ADDED: Dialog 1 - Warning */}
       <Portal>
@@ -243,6 +331,13 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  // ADDED: ScrollView styles for expanded settings list
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 24, // Breathing room above tab bar
   },
   // ADDED: Dialog styles
   dialogTitle: {
