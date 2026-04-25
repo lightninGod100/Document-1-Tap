@@ -23,6 +23,7 @@ interface DocumentContextType {
   getDocumentsByCategory: (categoryId: string) => Document[];
   getStarredDocuments: () => Document[];
   toggleStar: (id: string) => Promise<void>;
+  reloadDocuments: () => Promise<void>;
 }
 
 // Create the context
@@ -87,6 +88,8 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
       const stored = await AsyncStorage.getItem(DOCUMENTS_STORAGE_KEY);
       if (stored) {
         setDocuments(JSON.parse(stored));
+      } else {
+        setDocuments([]); // ADDED: Handle null case (e.g., after clear-all data)
       }
     } catch (error) {
       console.error('Failed to load documents:', error);
@@ -208,6 +211,7 @@ if (docToDelete?.fileUri) {
         getDocumentsByCategory,
         getStarredDocuments,
         toggleStar,
+        reloadDocuments: loadDocuments,
       }}
     >
       {children}

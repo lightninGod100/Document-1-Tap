@@ -19,6 +19,7 @@ interface CategoryContextType {
   isCategoryNameTaken: (name: string) => boolean; // ADDED: Duplicate check
   // ADDED: Update category method signature
   updateCategory: (id: string, updates: Partial<Pick<Category, 'name' | 'icon'>>) => Promise<void>;
+  reloadCategories: () => Promise<void>;
 }
 
 // Create the context
@@ -138,6 +139,7 @@ export function CategoryProvider({ children }: { children: React.ReactNode }) {
         deleteCategory,
         updateCategoryDocCount,
         isCategoryNameTaken,
+        reloadCategories: loadCategories,
       }}
     >
       {children}
