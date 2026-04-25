@@ -6,7 +6,7 @@
 // - Added Snackbar for success/error feedback
 
 import React, { useState } from 'react'; // MODIFIED: Added React + useState
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, Share } from 'react-native';
 import {
   Appbar,
   Button,
@@ -26,6 +26,12 @@ import { useDocuments } from '../../src/contexts/DocumentContext';
 import { useCategories } from '../../src/contexts/CategoryContext';
 // ADDED: For navigation to change-pin screen
 import { useRouter } from 'expo-router';
+
+// ADDED: Constants for "Share App" feature
+// TODO: Update SHARE_APP_URL with the real Play Store URL before release.
+// Format: https://play.google.com/store/apps/details?id=<your.package.name>
+const SHARE_APP_URL = 'https://play.google.com/store/apps/details?id=com.doc1tap';
+const SHARE_APP_MESSAGE = `Check out Document 1 Tap — a secure offline vault for your important documents. Download: ${SHARE_APP_URL}`;
 
 export default function SettingsScreen() {
   const theme = useTheme(); // ADDED
@@ -123,6 +129,36 @@ export default function SettingsScreen() {
     setActiveDialog(null);
   };
 
+  // ADDED: Share App handler — opens native share sheet with app message + Play Store URL.
+// Mirrors the snackbar/try-catch pattern used by handleFinalConfirm for consistency.
+const handleShareApp = async () => {
+  try {
+    const result = await Share.share({
+      message: SHARE_APP_MESSAGE,
+      // 'url' is iOS-only and shown in addition to message; Android uses message only.
+      // Including it keeps the link clickable on iOS share targets that support it.
+      url: SHARE_APP_URL,
+      title: 'Share Document 1 Tap', // Android: dialog chooser title
+    });
+
+    // result.action === 'dismissedAction' means user cancelled — stay silent, no snackbar.
+    // result.action === 'sharedAction' means user picked a target — also stay silent
+    // (the target app handles its own confirmation/feedback).
+    // We only show feedback on actual errors below.
+    if (result.action === Share.sharedAction) {
+      // Optional: could show success snackbar, but most apps don't — feels noisy.
+      // Leaving silent to match platform conventions.
+    }
+  } catch (err) {
+    console.error('Share App failed:', err);
+    setSnackbar({
+      visible: true,
+      message: 'Failed to open share sheet. Please try again.',
+      isError: true,
+    });
+  }
+};
+
   return (
     <View style={styles.container}>
       {/* App Header */}
@@ -159,14 +195,6 @@ export default function SettingsScreen() {
             right={(props) => <List.Icon {...props} icon="chevron-right" />}
             onPress={() => router.push('/auth/change-pin')} // No-op: UI only
           />
-          <List.Item
-            title="Remove PIN"
-            description="Disable PIN authentication"
-            left={(props) => <List.Icon {...props} icon="lock-off-outline" />}
-            right={(props) => <List.Icon {...props} icon="chevron-right" />}
-            onPress={() => {}} // No-op: UI only
-            
-          />
 
           <Divider />
 
@@ -191,7 +219,7 @@ export default function SettingsScreen() {
             description="Tell others about Document 1 Tap"
             left={(props) => <List.Icon {...props} icon="share-variant-outline" />}
             right={(props) => <List.Icon {...props} icon="chevron-right" />}
-            onPress={() => {}} // No-op: UI only
+            onPress={handleShareApp}
           />
           <List.Item
             title="Rate App"
