@@ -24,10 +24,12 @@ import { authenticateForShare } from '../../src/utils/auth';
 import { clearAllAppData } from '../../src/utils/clearData';
 import { useDocuments } from '../../src/contexts/DocumentContext';
 import { useCategories } from '../../src/contexts/CategoryContext';
+// ADDED: For navigation to change-pin screen
+import { useRouter } from 'expo-router';
 
 export default function SettingsScreen() {
   const theme = useTheme(); // ADDED
-
+  const router = useRouter(); // ADDED: For navigation to change-pin screen
   // ADDED: Context reload methods (for refreshing UI after clear)
   const { reloadDocuments } = useDocuments();
   const { reloadCategories } = useCategories();
@@ -155,7 +157,7 @@ export default function SettingsScreen() {
             description="Update your 4-digit PIN"
             left={(props) => <List.Icon {...props} icon="lock-reset" />}
             right={(props) => <List.Icon {...props} icon="chevron-right" />}
-            onPress={() => {}} // No-op: UI only
+            onPress={() => router.push('/auth/change-pin')} // No-op: UI only
           />
           <List.Item
             title="Remove PIN"
@@ -163,6 +165,7 @@ export default function SettingsScreen() {
             left={(props) => <List.Icon {...props} icon="lock-off-outline" />}
             right={(props) => <List.Icon {...props} icon="chevron-right" />}
             onPress={() => {}} // No-op: UI only
+            
           />
 
           <Divider />
