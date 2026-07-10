@@ -2,12 +2,11 @@
 
 import { useRouter } from 'expo-router';
 import { FlatList, StyleSheet, View } from 'react-native';
-// MODIFIED: Added Snackbar
-import { Appbar, Text, Dialog, Button, Portal, Snackbar } from 'react-native-paper';
+import { Appbar, Text, Dialog, Button, Portal, Snackbar, useTheme } from 'react-native-paper';
 import { CategoryCard } from '../../src/components/CategoryCard';
 import { useCategories } from '../../src/contexts/CategoryContext';
 // ADDED: Import useState
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 // ADDED: Import CategoryOptionsModal
 import { CategoryOptionsModal } from '../../src/components/CategoryOptionsModal';
@@ -16,6 +15,7 @@ import { Category } from '../../src/types';
 
 export default function CategoriesScreen() {
   const router = useRouter();
+  const theme = useTheme();
   // MODIFIED: Added deleteCategory
   const { categories, isLoading, deleteCategory } = useCategories();
   const [optionsModalVisible, setOptionsModalVisible] = useState(false);
@@ -70,12 +70,22 @@ export default function CategoriesScreen() {
     setSelectedCategory(null);
   };
   return (
-    <View style={styles.container}>
-      {/* App Header */}
-      <Appbar.Header>
-        <Appbar.Content title="Document 1 Tap" />
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Appbar.Header style={[styles.header, { backgroundColor: theme.colors.background }]}>
+        <Appbar.Content
+          title="Categories"
+          titleStyle={[styles.headerTitle, { color: theme.colors.onBackground }]}
+        />
         <Appbar.Action
           icon="folder-plus"
+          color={theme.colors.onSurface}
+          style={[
+            styles.headerAction,
+            {
+              backgroundColor: theme.colors.surface,
+              borderColor: theme.colors.outlineVariant,
+            },
+          ]}
           onPress={() => router.push('/add-category')}
         />
       </Appbar.Header>
@@ -98,9 +108,10 @@ export default function CategoriesScreen() {
             />
           )}
           keyExtractor={(item) => item.id}
-          numColumns={3}
+          numColumns={2}
           contentContainerStyle={styles.gridContainer}
           columnWrapperStyle={styles.row}
+          showsVerticalScrollIndicator={false}
         />
       )}
 
@@ -141,7 +152,7 @@ export default function CategoriesScreen() {
           onPress: () => setSnackbarVisible(false),
         }}
       >
-        Predefined categories can't be modified
+        {"Predefined categories can't be modified"}
       </Snackbar>
     </View>
   );
@@ -151,6 +162,24 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  header: {
+    height: 78,
+    paddingHorizontal: 8,
+    elevation: 1,
+    shadowOpacity: 0,
+  },
+  headerTitle: {
+    fontSize: 26,
+    lineHeight: 32,
+    fontWeight: '700',
+    letterSpacing: -0.1,
+  },
+  headerAction: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
   content: {
     flex: 1,
     justifyContent: 'center',
@@ -158,9 +187,12 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   gridContainer: {
-    padding: 12,
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 40,
+    gap: 14,
   },
   row: {
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
   },
 });

@@ -2,8 +2,8 @@
 
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import React from 'react';
-import { Dimensions, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { Badge, Text, useTheme } from 'react-native-paper';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text, useTheme } from 'react-native-paper';
 import { Category } from '../types';
 
 interface CategoryCardProps {
@@ -14,20 +14,16 @@ interface CategoryCardProps {
 
 export function CategoryCard({ category, onPress, onLongPress }: CategoryCardProps) {
   const theme = useTheme();
-
-  // Calculate square card size (screen width / 3 - spacing)
-  const screenWidth = Dimensions.get('window').width;
-  const cardSize = (screenWidth - 48) / 3; // 48 = padding (16*2) + gaps (8*2)
+  const iconBackground = `${category.color}1F`;
 
   return (
     <TouchableOpacity
       style={[
         styles.card,
         {
-          width: cardSize,
-          height: cardSize,
           backgroundColor: theme.colors.surface,
-          borderColor: theme.colors.outline,
+          borderColor: theme.colors.outlineVariant,
+          borderTopColor: category.color,
         },
       ]}
       onPress={onPress}
@@ -36,16 +32,14 @@ export function CategoryCard({ category, onPress, onLongPress }: CategoryCardPro
       onLongPress={onLongPress}
       delayLongPress={500}
     >
-      {/* Category Icon */}
-      <View style={styles.iconContainer}>
+      <View style={[styles.iconContainer, { backgroundColor: iconBackground }]}>
         <MaterialCommunityIcons
           name={category.icon as any}
-          size={40}
+          size={21}
           color={category.color}
         />
       </View>
 
-      {/* Category Name */}
       <Text
         variant="bodyMedium"
         style={[styles.categoryName, { color: theme.colors.onSurface }]}
@@ -54,40 +48,47 @@ export function CategoryCard({ category, onPress, onLongPress }: CategoryCardPro
         {category.name}
       </Text>
 
-      {/* Document Count Badge */}
-      {category.documentCount > 0 && (
-        <Badge
-          style={[styles.badge, { backgroundColor: category.color }]}
-          size={20}
-        >
-          {String(category.documentCount)}
-        </Badge>
-      )}
+      <Text style={[styles.documentCount, { color: theme.colors.onSurfaceVariant }]}>
+        {category.documentCount} {category.documentCount === 1 ? 'doc' : 'docs'}
+      </Text>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    margin: 4,
-    borderRadius: 12,
+    width: '48.5%',
+    height: 100,
+    borderRadius: 7,
     borderWidth: 1,
-    padding: 8,
+    borderTopWidth: 3,
+    padding: 10,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
+    overflow: 'hidden',
+    elevation: 5,
+    shadowColor: '#101828',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 14,
   },
   iconContainer: {
-    marginBottom: 8,
+    width: 38,
+    height: 38,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
   },
   categoryName: {
     textAlign: 'center',
     fontWeight: '600',
+    fontSize: 14,
+    lineHeight: 17,
   },
-  badge: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    fontSize: 10,
+  documentCount: {
+    fontSize: 12,
+    lineHeight: 15,
   },
 });
