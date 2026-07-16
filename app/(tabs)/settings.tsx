@@ -14,6 +14,7 @@ import {
   Divider,
   List,
   Portal,
+  RadioButton,
   Snackbar,
   Text,
   useTheme, // ADDED: For theme-aware error color
@@ -26,6 +27,7 @@ import { useDocuments } from '../../src/contexts/DocumentContext';
 import { useCategories } from '../../src/contexts/CategoryContext';
 // ADDED: For navigation to change-pin screen
 import { useRouter } from 'expo-router';
+import { ThemePreference, useAppTheme } from '../../src/contexts/ThemeContext';
 
 // ADDED: Constants for "Share App" feature
 // TODO: Update SHARE_APP_URL with the real Play Store URL before release.
@@ -36,6 +38,8 @@ const SHARE_APP_MESSAGE = `Check out Document 1 Tap — a secure offline vault f
 export default function SettingsScreen() {
   const theme = useTheme(); // ADDED
   const router = useRouter(); // ADDED: For navigation to change-pin screen
+  const { preference, setPreference } = useAppTheme();
+  const [themeDialogVisible, setThemeDialogVisible] = useState(false);
   // ADDED: Context reload methods (for refreshing UI after clear)
   const { reloadDocuments } = useDocuments();
   const { reloadCategories } = useCategories();
@@ -178,10 +182,10 @@ const handleShareApp = async () => {
           <List.Subheader>Appearance</List.Subheader>
           <List.Item
             title="Theme"
-            description="System" // MODIFIED: Was "Light" - placeholder until theme switcher wired
+            description={preference.charAt(0).toUpperCase() + preference.slice(1)}
             left={(props) => <List.Icon {...props} icon="theme-light-dark" />}
             right={(props) => <List.Icon {...props} icon="chevron-right" />}
-            onPress={() => {}} // No-op: UI only
+            onPress={() => setThemeDialogVisible(true)}
           />
 
           <Divider />
@@ -283,6 +287,29 @@ const handleShareApp = async () => {
 
       {/* ADDED: Dialog 1 - Warning */}
       <Portal>
+        <Dialog
+          visible={themeDialogVisible}
+          onDismiss={() => setThemeDialogVisible(false)}
+        >
+          <Dialog.Title>Choose theme</Dialog.Title>
+          <Dialog.Content>
+            <RadioButton.Group
+              value={preference}
+              onValueChange={(value) => {
+                void setPreference(value as ThemePreference);
+                setThemeDialogVisible(false);
+              }}
+            >
+              <RadioButton.Item label="System default" value="system" />
+              <RadioButton.Item label="Light" value="light" />
+              <RadioButton.Item label="Dark" value="dark" />
+            </RadioButton.Group>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setThemeDialogVisible(false)}>Cancel</Button>
+          </Dialog.Actions>
+        </Dialog>
+
         <Dialog
           visible={activeDialog === 'warning'}
           onDismiss={handleCancel}

@@ -93,7 +93,7 @@ export default function TabLayout() {
           styles.fab,
           {
             bottom: 60 + insets.bottom + 8,
-            backgroundColor: '#FF6B6B',
+            backgroundColor: theme.colors.primary,
           },
         ]}
         onPress={() => router.push({ pathname: '/add-document', params: { origin: pathname } })}

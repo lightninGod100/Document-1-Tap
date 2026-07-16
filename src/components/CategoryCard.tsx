@@ -83,9 +83,10 @@ const styles = StyleSheet.create({
   },
   categoryName: {
     textAlign: 'center',
-    fontWeight: '600',
+    fontWeight: '700',
     fontSize: 14,
     lineHeight: 17,
+    letterSpacing: 1.4,
   },
   documentCount: {
     fontSize: 12,

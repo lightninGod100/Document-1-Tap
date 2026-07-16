@@ -188,9 +188,9 @@ const styles = StyleSheet.create({
   },
   gridContainer: {
     paddingHorizontal: 16,
-    paddingTop: 4,
+    paddingTop: 14,
     paddingBottom: 40,
-    gap: 14,
+    gap: 16,
   },
   row: {
     justifyContent: 'space-between',
