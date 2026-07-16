@@ -1,11 +1,10 @@
 // app/(tabs)/_layout.tsx
 
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs, usePathname, useRouter } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 import { FAB, useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { usePathname } from 'expo-router';
 
 
 export default function TabLayout() {
@@ -89,11 +88,12 @@ export default function TabLayout() {
       </Tabs>
       <FAB
         icon="plus"
+        size="medium"
         style={[
           styles.fab,
           {
             bottom: 60 + insets.bottom + 8,
-            backgroundColor: '#FF6B6B',
+            backgroundColor: theme.colors.primary,
           },
         ]}
         onPress={() => router.push({ pathname: '/add-document', params: { origin: pathname } })}
@@ -108,6 +108,7 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    alignSelf: 'center',
+    right: 16,
+    borderRadius: 16,
   },
 });

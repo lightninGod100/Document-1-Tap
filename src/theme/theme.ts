@@ -1,37 +1,45 @@
 import { MD3LightTheme, MD3DarkTheme } from 'react-native-paper';
 
-// Light Theme - Professional blue color scheme
+// Light theme values from the category screen design.
 export const lightTheme = {
   ...MD3LightTheme,
   colors: {
     ...MD3LightTheme.colors,
-    primary: '#1976D2',           // Primary blue
-    secondary: '#424242',         // Dark gray
-    tertiary: '#4CAF50',          // Success green
-    error: '#D32F2F',             // Error red
-    background: '#F5F5F5',        // Light gray background
-    surface: '#FFFFFF',           // White cards/surfaces
-    onPrimary: '#FFFFFF',         // Text on primary color
-    onSecondary: '#FFFFFF',       // Text on secondary color
-    onBackground: '#212121',      // Text on background
-    onSurface: '#212121',         // Text on surface
+    primary: '#EC5265',
+    secondary: '#667085',
+    tertiary: '#3FBF9A',
+    error: '#D32F2F',
+    background: '#F3F5F8',
+    surface: '#FFFFFF',
+    surfaceVariant: '#F3F5F8',
+    onPrimary: '#FFFFFF',
+    onSecondary: '#FFFFFF',
+    onBackground: '#161B22',
+    onSurface: '#161B22',
+    onSurfaceVariant: '#667085',
+    outline: 'rgba(16,24,40,0.14)',
+    outlineVariant: 'rgba(16,24,40,0.08)',
   },
 };
 
-// Dark Theme - Professional dark blue scheme
+// Dark theme values from the category screen design.
 export const darkTheme = {
   ...MD3DarkTheme,
   colors: {
     ...MD3DarkTheme.colors,
-    primary: '#90CAF9',           // Light blue for dark mode
-    secondary: '#B0BEC5',         // Light gray
-    tertiary: '#81C784',          // Light green
-    error: '#EF5350',             // Light red
-    background: '#121212',        // Almost black
-    surface: '#1E1E1E',           // Dark gray cards
-    onPrimary: '#000000',         // Text on primary (black for contrast)
-    onSecondary: '#000000',       // Text on secondary
-    onBackground: '#FFFFFF',      // White text on dark background
-    onSurface: '#FFFFFF',         // White text on dark surfaces
+    primary: '#EC5265',
+    secondary: '#8A92A1',
+    tertiary: '#3FBF9A',
+    error: '#EF5350',
+    background: '#0E1116',
+    surface: '#181C24',
+    surfaceVariant: '#1C2129',
+    onPrimary: '#FFFFFF',
+    onSecondary: '#FFFFFF',
+    onBackground: '#EAEEF5',
+    onSurface: '#EAEEF5',
+    onSurfaceVariant: '#8A92A1',
+    outline: 'rgba(255,255,255,0.13)',
+    outlineVariant: 'rgba(255,255,255,0.07)',
   },
 };
