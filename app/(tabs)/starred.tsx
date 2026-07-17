@@ -32,7 +32,7 @@ export default function StarredScreen() {
 }
 
 const styles = StyleSheet.create({
-  headerTitle: {
+   headerTitle: {
     fontWeight: '700',
     letterSpacing: 1.2,
   },

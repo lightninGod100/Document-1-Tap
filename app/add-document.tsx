@@ -14,7 +14,6 @@ import {
     Text,
     TextInput,
     TouchableRipple,
-    useTheme,
 } from 'react-native-paper';
 import { CategoryPickerModal } from '../src/components/CategoryPickerModal';
 import { FileSelectionSheet, FileSourceType } from '../src/components/FileSelectionSheet';
@@ -32,28 +31,39 @@ const DEFAULT_CATEGORY_ID = 'cat_uncategorized';
 
 export default function AddDocumentScreen() {
     const router = useRouter();
-    const { origin } = useLocalSearchParams<{ origin?: string }>();
-    const theme = useTheme();
+    const { origin, id } = useLocalSearchParams<{ origin?: string; id?: string }>();
     const { categories } = useCategories();
+    const { documents, addDocument, updateDocument } = useDocuments();
+    const documentToEdit = id ? documents.find((document) => document.id === id) : undefined;
+    const isEditing = Boolean(id);
 
     // Form state
-    const [title, setTitle] = useState('');
-    const [selectedCategoryId, setSelectedCategoryId] = useState(DEFAULT_CATEGORY_ID);
-    const [documentNumber, setDocumentNumber] = useState('');
-    const [notes, setNotes] = useState('');
+    const [title, setTitle] = useState(documentToEdit?.title ?? '');
+    const [selectedCategoryId, setSelectedCategoryId] = useState(
+        documentToEdit?.categoryId ?? DEFAULT_CATEGORY_ID
+    );
+    const [documentNumber, setDocumentNumber] = useState(documentToEdit?.documentNumber ?? '');
+    const [notes, setNotes] = useState(documentToEdit?.notes ?? '');
 
     // File state (will be expanded in Phase 4B/4C)
     const [selectedFile, setSelectedFile] = useState<{
         uri: string;
         type: 'image' | 'pdf';
         name?: string;
-    } | null>(null);
+    } | null>(
+        documentToEdit?.fileUri && documentToEdit.fileType
+            ? {
+                uri: documentToEdit.fileUri,
+                type: documentToEdit.fileType,
+                name: documentToEdit.fileUri.split('/').pop(),
+            }
+            : null
+    );
 
     // Modal visibility state
     const [categoryPickerVisible, setCategoryPickerVisible] = useState(false);
     const [fileSheetVisible, setFileSheetVisible] = useState(false);
     const [noFileWarningVisible, setNoFileWarningVisible] = useState(false);
-    const { addDocument } = useDocuments();
     // ADDED: Loading state for save operation
     const [isSaving, setIsSaving] = useState(false);
     const [snackbar, setSnackbar] = useState<{
@@ -161,23 +171,35 @@ export default function AddDocumentScreen() {
         try {
             const finalTitle = title.trim() || 'Unknown';
 
-            // Prepare document data
-            await addDocument({
+            const documentData = {
                 title: finalTitle,
                 categoryId: selectedCategoryId,
                 documentNumber: documentNumber.trim() || undefined,
                 notes: notes.trim() || undefined,
                 fileUri: selectedFile?.uri,
                 fileType: selectedFile?.type,
-                isStarred: false,
-            });
+            };
+
+            if (isEditing && id) {
+                if (!documentToEdit) {
+                    throw new Error(`Document ${id} was not found`);
+                }
+                await updateDocument(id, documentData);
+            } else {
+                await addDocument({
+                    ...documentData,
+                    isStarred: false,
+                });
+            }
 
             // Show success message
-            showSuccess('Document saved successfully');
+            showSuccess(isEditing ? 'Document updated successfully' : 'Document saved successfully');
 
             // Navigate back after short delay (let user see toast)
             setTimeout(() => {
-                if (origin) {
+                if (isEditing) {
+                    router.back();
+                } else if (origin) {
                     router.replace(origin);
                 } else {
                     router.back();
@@ -203,7 +225,7 @@ export default function AddDocumentScreen() {
             {/* Header */}
             <Appbar.Header>
                 <Appbar.BackAction onPress={() => router.back()} />
-                <Appbar.Content title="New Document" />
+                <Appbar.Content title={isEditing ? 'Edit Document' : 'New Document'} />
             </Appbar.Header>
 
             {/* Scrollable Form Content */}
@@ -427,7 +449,7 @@ export default function AddDocumentScreen() {
                         },
                     }}
                 >
-                    {isSaving ? 'Saving...' : 'Save Document'}
+                    {isSaving ? 'Saving...' : isEditing ? 'Update Document' : 'Save Document'}
                 </Button>
             </View>
 
@@ -459,7 +481,7 @@ export default function AddDocumentScreen() {
                     </Dialog.Title>
                     <Dialog.Content>
                         <Text variant="bodyMedium" style={styles.dialogContent}>
-                            You haven't attached any document file. Do you want to save without a file?
+                            You have not attached any document file. Do you want to save without a file?
                         </Text>
                     </Dialog.Content>
                     <Dialog.Actions>

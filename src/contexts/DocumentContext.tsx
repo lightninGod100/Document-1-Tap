@@ -140,23 +140,53 @@ export function DocumentProvider({ children }: { children: React.ReactNode }) {
 
   // Update an existing document
   const updateDocument = async (id: string, updates: Partial<Document>) => {
-    const updated = documents.map((doc) => {
+    const existingDocument = documents.find((doc) => doc.id === id);
+    if (!existingDocument) {
+      throw new Error(`Document ${id} was not found`);
+    }
+
+    const fileChanged =
+      Object.prototype.hasOwnProperty.call(updates, 'fileUri') &&
+      updates.fileUri !== existingDocument.fileUri;
+    let nextFileUri = updates.fileUri;
+
+    if (fileChanged && nextFileUri && updates.fileType) {
+      nextFileUri = await copyFileToAppDirectory(nextFileUri, updates.fileType);
+    }
+
+    const updatedDocuments = documents.map((doc) => {
       if (doc.id !== id) return doc;
 
       // If document number changed, regenerate masked version
-      const documentNumberMasked = updates.documentNumber
-        ? maskDocumentNumber(updates.documentNumber)
+      const documentNumberChanged =
+        Object.prototype.hasOwnProperty.call(updates, 'documentNumber');
+      const documentNumberMasked = documentNumberChanged
+        ? updates.documentNumber
+          ? maskDocumentNumber(updates.documentNumber)
+          : undefined
         : doc.documentNumberMasked;
 
       return {
         ...doc,
         ...updates,
+        ...(fileChanged ? { fileUri: nextFileUri } : {}),
         documentNumberMasked,
         updatedAt: Date.now(),
       };
     });
 
-    await saveDocuments(updated);
+    await saveDocuments(updatedDocuments);
+
+    if (fileChanged && existingDocument.fileUri) {
+      try {
+        const oldFile = new File(existingDocument.fileUri);
+        if (oldFile.exists) {
+          oldFile.delete();
+        }
+      } catch (error) {
+        console.error('Failed to delete replaced file:', error);
+      }
+    }
   };
 
   // Delete a document

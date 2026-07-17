@@ -7,7 +7,6 @@ import { useLocalSearchParams, useRouter, useFocusEffect } from 'expo-router';
 import * as Sharing from 'expo-sharing';
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -20,7 +19,6 @@ import {
   Chip,
   Dialog,
   Divider,
-  IconButton,
   Menu,
   Portal,
   Snackbar,
@@ -36,7 +34,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCategories } from '../../src/contexts/CategoryContext';
 import { useDocuments } from '../../src/contexts/DocumentContext';
-import { Document } from '../../src/types';
 import { formatDocumentDate, getFormattedFileSize } from '../../src/utils/fileUtils';
 import { openPdfInViewer } from '../../src/utils/openPdfViewer';
 // Import the image zoom component
@@ -130,8 +127,10 @@ export default function DocumentDetailScreen() {
 
   const handleEdit = () => {
     setMenuVisible(false);
-    // TODO: Navigate to edit screen (Phase later)
-    showSnackbar('Edit feature coming soon');
+    router.push({
+      pathname: '/add-document',
+      params: { id: document.id },
+    });
   };
 
   const handleShare = async () => {
@@ -494,7 +493,7 @@ export default function DocumentDetailScreen() {
           <Dialog.Title style={styles.dialogTitle}>Delete Document?</Dialog.Title>
           <Dialog.Content>
             <Text variant="bodyMedium">
-              Are you sure you want to delete "{document.title}"? This action cannot
+              Are you sure you want to delete &quot;{document.title}&quot;? This action cannot
               be undone.
             </Text>
           </Dialog.Content>
