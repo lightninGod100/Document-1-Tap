@@ -1,6 +1,8 @@
+import * as Clipboard from 'expo-clipboard';
+import * as Haptics from 'expo-haptics';
 import React, { ReactNode, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { useTheme } from 'react-native-paper';
+import { Snackbar, useTheme } from 'react-native-paper';
 import { useCategories } from '../contexts/CategoryContext';
 import { useSortFilter } from '../hooks/useSortFilter';
 import { Document } from '../types';
@@ -32,6 +34,7 @@ export function DocumentListScreen({
   const { categories } = useCategories();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterSheetVisible, setFilterSheetVisible] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   const searchedDocuments = searchDocuments(documents, searchQuery, categories);
   const {
@@ -52,6 +55,18 @@ export function DocumentListScreen({
   const resolvedEmptySubtitle =
     hasNoResults && isSearchActive ? 'Try a different search term' : emptySubtitle;
 
+  const handleCopyPress = async (document: Document) => {
+    if (!document.documentNumber) return;
+
+    try {
+      await Clipboard.setStringAsync(document.documentNumber);
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (error) {
+      console.error('Copy document ID error:', error);
+      setSnackbarMessage('Failed to copy document ID');
+    }
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {renderHeader(() => setFilterSheetVisible(true))}
@@ -69,6 +84,7 @@ export function DocumentListScreen({
         emptySubtitle={resolvedEmptySubtitle}
         onDocumentPress={onDocumentPress}
         onStarPress={onStarPress}
+        onCopyPress={handleCopyPress}
       />
 
       <SortFilterSheet
@@ -81,6 +97,14 @@ export function DocumentListScreen({
         onClear={clearAll}
         onApply={() => setFilterSheetVisible(false)}
       />
+
+      <Snackbar
+        visible={snackbarMessage.length > 0}
+        onDismiss={() => setSnackbarMessage('')}
+        duration={2000}
+      >
+        {snackbarMessage}
+      </Snackbar>
     </View>
   );
 }

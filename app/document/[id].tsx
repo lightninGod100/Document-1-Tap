@@ -189,7 +189,6 @@ export default function DocumentDetailScreen() {
     if (document.documentNumber) {
       await Clipboard.setStringAsync(document.documentNumber);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      showSnackbar('Document ID copied');
     }
   };
 
