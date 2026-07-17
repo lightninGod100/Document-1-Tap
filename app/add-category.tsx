@@ -119,9 +119,9 @@ export default function AddCategoryScreen() {
   const isSaveDisabled = name.trim().length === 0;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* MODIFIED: Header - removed save action */}
-      <Appbar.Header>
+      <Appbar.Header style={{ backgroundColor: theme.colors.surface }}>
         <Appbar.BackAction onPress={() => router.back()} />
         <Appbar.Content title={isEditMode ? 'Edit Category' : 'Add Category'} />
       </Appbar.Header>

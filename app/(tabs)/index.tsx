@@ -71,11 +71,8 @@ export default function CategoriesScreen() {
   };
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <Appbar.Header style={[styles.header, { backgroundColor: theme.colors.background }]}>
-        <Appbar.Content
-          title="Categories"
-          titleStyle={[styles.headerTitle, { color: theme.colors.onBackground }]}
-        />
+      <Appbar.Header style={[styles.header, { backgroundColor: theme.colors.surface }]}>
+        <Appbar.Content title="Categories" titleStyle={styles.headerTitle} />
         <Appbar.Action
           icon="folder-plus"
           color={theme.colors.onSurface}
@@ -163,16 +160,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    height: 78,
+    height: 64,
     paddingHorizontal: 8,
     elevation: 1,
     shadowOpacity: 0,
   },
   headerTitle: {
-    fontSize: 26,
-    lineHeight: 32,
     fontWeight: '700',
-    letterSpacing: -0.1,
+    letterSpacing:1.2
   },
   headerAction: {
     width: 40,
@@ -188,7 +183,7 @@ const styles = StyleSheet.create({
   },
   gridContainer: {
     paddingHorizontal: 16,
-    paddingTop: 14,
+    paddingTop: 18,
     paddingBottom: 40,
     gap: 16,
   },

@@ -31,7 +31,7 @@ export const darkTheme = {
     secondary: '#8A92A1',
     tertiary: '#3FBF9A',
     error: '#EF5350',
-    background: '#0E1116',
+    background: '#000000',
     surface: '#181C24',
     surfaceVariant: '#1C2129',
     onPrimary: '#FFFFFF',

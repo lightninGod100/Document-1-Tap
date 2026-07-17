@@ -221,8 +221,8 @@ export function DocumentCard({
 // ============================================
 const styles = StyleSheet.create({
   card: {
-    marginHorizontal: 16,
-    marginVertical: 3,
+    marginHorizontal: 18,
+    marginVertical: 6,
     borderRadius: 12,
     overflow: 'hidden',
   },

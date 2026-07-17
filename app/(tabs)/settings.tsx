@@ -164,16 +164,16 @@ const handleShareApp = async () => {
 };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* App Header */}
       <Appbar.Header>
-        <Appbar.Content title="Settings" />
+        <Appbar.Content title="Settings" titleStyle={styles.headerTitle} />
       </Appbar.Header>
 
       {/* Settings List */}
 {/* MODIFIED: Expanded settings list - wrapped in ScrollView for overflow */}
 <ScrollView
-        style={styles.scrollView}
+        style={[styles.scrollView, { backgroundColor: theme.colors.background }]}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
@@ -389,6 +389,10 @@ const handleShareApp = async () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  headerTitle: {
+    fontWeight: '700',
+    letterSpacing:1.2
   },
   // ADDED: ScrollView styles for expanded settings list
   scrollView: {
