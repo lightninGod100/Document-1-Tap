@@ -75,6 +75,16 @@ export default function DocumentDetailScreen() {
   // ============================================
   // HANDLERS
   // ============================================
+  const handleBack = useCallback(() => {
+    if (source === 'all-docs') {
+      router.navigate('/(tabs)/all-docs');
+    } else if (source === 'starred') {
+      router.navigate('/(tabs)/starred');
+    } else {
+      router.back();
+    }
+  }, [router, source]);
+
   // ADDED: Handle Android hardware back button
   // ADDED: Handle Android hardware back button
   useFocusEffect(
@@ -89,7 +99,7 @@ export default function DocumentDetailScreen() {
       return () => {
         subscription.remove(); // FIXED: Use subscription.remove() instead of removeEventListener
       };
-    }, [source])
+    }, [handleBack])
   );
 
   if (!document) {
@@ -109,16 +119,6 @@ export default function DocumentDetailScreen() {
       </View>
     );
   }
-
-  const handleBack = () => {
-    if (source === 'all-docs') {
-      router.replace('/(tabs)/all-docs');
-    } else if (source === 'starred') {
-      router.replace('/(tabs)/starred');
-    } else {
-      router.back(); // Fallback for category-detail and others
-    }
-  };
 
   const handleToggleStar = async () => {
     await toggleStar(document.id);

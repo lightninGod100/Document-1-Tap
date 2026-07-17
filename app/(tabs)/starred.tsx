@@ -17,6 +17,7 @@ export default function StarredScreen() {
 
   return (
     <DocumentListScreen
+      stateKey="starred"
       documents={starredDocuments}
       searchPlaceholder="Search starred..."
       onDocumentPress={handleDocumentPress}

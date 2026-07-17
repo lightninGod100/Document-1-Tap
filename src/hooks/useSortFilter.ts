@@ -39,12 +39,16 @@ interface UseSortFilterReturn {
 // ============================================
 // HOOK IMPLEMENTATION
 // ============================================
-export function useSortFilter(documents: Document[]): UseSortFilterReturn {
+export function useSortFilter(
+  documents: Document[],
+  initialSortConfig: SortConfig = DEFAULT_SORT_CONFIG,
+  initialFilterConfig: FilterConfig = DEFAULT_FILTER_CONFIG
+): UseSortFilterReturn {
   const { categories } = useCategories();
 
   // State
-  const [sortConfig, setSortConfig] = useState<SortConfig>(DEFAULT_SORT_CONFIG);
-  const [filterConfig, setFilterConfig] = useState<FilterConfig>(DEFAULT_FILTER_CONFIG);
+  const [sortConfig, setSortConfig] = useState<SortConfig>(initialSortConfig);
+  const [filterConfig, setFilterConfig] = useState<FilterConfig>(initialFilterConfig);
 
   // ============================================
   // HELPER: Get category name for sorting

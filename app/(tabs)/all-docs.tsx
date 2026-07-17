@@ -15,6 +15,7 @@ export default function AllDocsScreen() {
 
   return (
     <DocumentListScreen
+      stateKey="all-docs"
       documents={documents}
       searchPlaceholder="Search documents..."
       onDocumentPress={handleDocumentPress}

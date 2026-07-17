@@ -1,17 +1,27 @@
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
-import React, { ReactNode, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import React, { ReactNode, useCallback, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Snackbar, useTheme } from 'react-native-paper';
 import { useCategories } from '../contexts/CategoryContext';
 import { useSortFilter } from '../hooks/useSortFilter';
-import { Document } from '../types';
+import { Document, FilterConfig, SortConfig } from '../types';
 import { searchDocuments } from '../utils/searchUtils';
 import { DocumentList } from './DocumentList';
 import { DocumentSearchBar } from './DocumentSearchBar';
 import { SortFilterSheet } from './SortFilterSheet';
 
+interface PreservedListState {
+  searchQuery: string;
+  sortConfig: SortConfig;
+  filterConfig: FilterConfig;
+}
+
+const preservedListStates = new Map<string, PreservedListState>();
+
 interface DocumentListScreenProps {
+  stateKey: string;
   documents: Document[];
   searchPlaceholder: string;
   renderHeader: (openFilters: () => void) => ReactNode;
@@ -22,6 +32,7 @@ interface DocumentListScreenProps {
 }
 
 export function DocumentListScreen({
+  stateKey,
   documents,
   searchPlaceholder,
   renderHeader,
@@ -32,9 +43,11 @@ export function DocumentListScreen({
 }: DocumentListScreenProps) {
   const theme = useTheme();
   const { categories } = useCategories();
-  const [searchQuery, setSearchQuery] = useState('');
+  const preservedState = preservedListStates.get(stateKey);
+  const [searchQuery, setSearchQuery] = useState(preservedState?.searchQuery ?? '');
   const [filterSheetVisible, setFilterSheetVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const preserveFiltersOnBlur = useRef(false);
 
   const searchedDocuments = searchDocuments(documents, searchQuery, categories);
   const {
@@ -44,7 +57,26 @@ export function DocumentListScreen({
     setSortField,
     setFilterValue,
     clearAll,
-  } = useSortFilter(searchedDocuments);
+  } = useSortFilter(
+    searchedDocuments,
+    preservedState?.sortConfig,
+    preservedState?.filterConfig
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      preserveFiltersOnBlur.current = false;
+
+      return () => {
+        if (!preserveFiltersOnBlur.current) {
+          preservedListStates.delete(stateKey);
+          clearAll();
+          setSearchQuery('');
+          setFilterSheetVisible(false);
+        }
+      };
+    }, [clearAll, stateKey])
+  );
 
   const isSearchActive = searchQuery.trim().length > 0;
   const hasNoResults = filteredDocuments.length === 0;
@@ -67,6 +99,12 @@ export function DocumentListScreen({
     }
   };
 
+  const handleDocumentPress = (document: Document) => {
+    preserveFiltersOnBlur.current = true;
+    preservedListStates.set(stateKey, { searchQuery, sortConfig, filterConfig });
+    onDocumentPress(document);
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {renderHeader(() => setFilterSheetVisible(true))}
@@ -82,7 +120,7 @@ export function DocumentListScreen({
         emptyIcon={resolvedEmptyIcon}
         emptyTitle={resolvedEmptyTitle}
         emptySubtitle={resolvedEmptySubtitle}
-        onDocumentPress={onDocumentPress}
+        onDocumentPress={handleDocumentPress}
         onStarPress={onStarPress}
         onCopyPress={handleCopyPress}
       />

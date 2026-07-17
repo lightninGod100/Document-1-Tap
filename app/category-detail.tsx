@@ -42,6 +42,7 @@ export default function CategoryDetailScreen() {
 
   return (
     <DocumentListScreen
+      stateKey={`category-${category.id}`}
       documents={categoryDocuments}
       searchPlaceholder={`Search in ${category.name}...`}
       onDocumentPress={handleDocumentPress}
