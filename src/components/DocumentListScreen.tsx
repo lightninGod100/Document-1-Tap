@@ -3,8 +3,9 @@ import * as Haptics from 'expo-haptics';
 import { useFocusEffect } from 'expo-router';
 import React, { ReactNode, useCallback, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Snackbar, useTheme } from 'react-native-paper';
+import { Button, Dialog, Portal, Snackbar, Text, useTheme } from 'react-native-paper';
 import { useCategories } from '../contexts/CategoryContext';
+import { useDocuments } from '../contexts/DocumentContext';
 import { useSortFilter } from '../hooks/useSortFilter';
 import { Document, FilterConfig, SortConfig } from '../types';
 import { searchDocuments } from '../utils/searchUtils';
@@ -43,10 +44,12 @@ export function DocumentListScreen({
 }: DocumentListScreenProps) {
   const theme = useTheme();
   const { categories } = useCategories();
+  const { deleteDocument } = useDocuments();
   const preservedState = preservedListStates.get(stateKey);
   const [searchQuery, setSearchQuery] = useState(preservedState?.searchQuery ?? '');
   const [filterSheetVisible, setFilterSheetVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [documentToDelete, setDocumentToDelete] = useState<Document | null>(null);
   const preserveFiltersOnBlur = useRef(false);
 
   const searchedDocuments = searchDocuments(documents, searchQuery, categories);
@@ -105,6 +108,20 @@ export function DocumentListScreen({
     onDocumentPress(document);
   };
 
+  const confirmDelete = async () => {
+    if (!documentToDelete) return;
+
+    const documentId = documentToDelete.id;
+    setDocumentToDelete(null);
+
+    try {
+      await deleteDocument(documentId);
+    } catch (error) {
+      console.error('Delete error:', error);
+      setSnackbarMessage('Failed to delete document');
+    }
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {renderHeader(() => setFilterSheetVisible(true))}
@@ -122,6 +139,7 @@ export function DocumentListScreen({
         emptySubtitle={resolvedEmptySubtitle}
         onDocumentPress={handleDocumentPress}
         onStarPress={onStarPress}
+        onMenuPress={setDocumentToDelete}
         onCopyPress={handleCopyPress}
       />
 
@@ -135,6 +153,28 @@ export function DocumentListScreen({
         onClear={clearAll}
         onApply={() => setFilterSheetVisible(false)}
       />
+
+      <Portal>
+        <Dialog
+          visible={documentToDelete !== null}
+          onDismiss={() => setDocumentToDelete(null)}
+        >
+          <Dialog.Icon icon="alert" color={theme.colors.error} />
+          <Dialog.Title style={styles.dialogTitle}>Delete Document?</Dialog.Title>
+          <Dialog.Content>
+            <Text variant="bodyMedium">
+              Are you sure you want to delete &quot;{documentToDelete?.title}&quot;? This action
+              cannot be undone.
+            </Text>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button onPress={() => setDocumentToDelete(null)}>Cancel</Button>
+            <Button textColor={theme.colors.error} onPress={confirmDelete}>
+              Delete
+            </Button>
+          </Dialog.Actions>
+        </Dialog>
+      </Portal>
 
       <Snackbar
         visible={snackbarMessage.length > 0}
@@ -150,5 +190,8 @@ export function DocumentListScreen({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  dialogTitle: {
+    textAlign: 'center',
   },
 });

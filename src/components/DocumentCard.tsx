@@ -1,9 +1,9 @@
 // src/components/DocumentCard.tsx
 
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
-import { Surface, Text, TouchableRipple, useTheme } from 'react-native-paper';
+import { Menu, Surface, Text, TouchableRipple, useTheme } from 'react-native-paper';
 import { Document } from '../types';
 
 // ============================================
@@ -51,6 +51,12 @@ export function DocumentCard({
   onCopyPress,
 }: DocumentCardProps) {
   const theme = useTheme();
+  const [menuVisible, setMenuVisible] = useState(false);
+
+  const handleDeletePress = () => {
+    setMenuVisible(false);
+    onMenuPress?.();
+  };
 
   // Determine what to show in thumbnail area
   const renderThumbnail = () => {
@@ -157,17 +163,30 @@ export function DocumentCard({
               </TouchableRipple>
 
               {/* 3-dot Menu Icon */}
-              <TouchableRipple
-                onPress={onMenuPress}
-                borderless
-                style={styles.iconButton}
+              <Menu
+                visible={menuVisible}
+                onDismiss={() => setMenuVisible(false)}
+                anchor={
+                  <TouchableRipple
+                    onPress={() => setMenuVisible(true)}
+                    borderless
+                    style={styles.iconButton}
+                  >
+                    <MaterialCommunityIcons
+                      name="dots-vertical"
+                      size={24}
+                      color={theme.colors.onSurfaceVariant}
+                    />
+                  </TouchableRipple>
+                }
               >
-                <MaterialCommunityIcons
-                  name="dots-vertical"
-                  size={24}
-                  color={theme.colors.onSurfaceVariant}
+                <Menu.Item
+                  leadingIcon="delete-outline"
+                  onPress={handleDeletePress}
+                  title="Delete"
+                  titleStyle={{ color: theme.colors.error }}
                 />
-              </TouchableRipple>
+              </Menu>
             </View>
           </View>
 
