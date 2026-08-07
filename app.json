@@ -2,6 +2,7 @@
   "expo": {
     "name": "Document 1 Tap",
     "slug": "document-1-tap",
+    "scheme": "document1tap",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -32,7 +33,9 @@
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
         "USE_BIOMETRIC",
-        "USE_FINGERPRINT"
+        "USE_FINGERPRINT",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
       ]
     },
     "plugins": [
@@ -45,7 +48,23 @@
       "expo-router",
       "expo-secure-store",
       "expo-web-browser",
-      "expo-font"
-    ]
+      "expo-font",
+      [
+        "expo-share-intent",
+        {
+          "androidIntentFilters": [
+            "image/*",
+            "application/pdf"
+          ],
+          "disableIOS": true
+        }
+      ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "c651f388-7981-4f1f-9d6a-6741b4622ece"
+      }
+    }
   }
 }

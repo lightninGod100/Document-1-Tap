@@ -14,6 +14,7 @@ import {
     Text,
     TextInput,
     TouchableRipple,
+    useTheme,
 } from 'react-native-paper';
 import { CategoryPickerModal } from '../src/components/CategoryPickerModal';
 import { FileSelectionSheet, FileSourceType } from '../src/components/FileSelectionSheet';
@@ -31,7 +32,14 @@ const DEFAULT_CATEGORY_ID = 'cat_uncategorized';
 
 export default function AddDocumentScreen() {
     const router = useRouter();
-    const { origin, id } = useLocalSearchParams<{ origin?: string; id?: string }>();
+    const theme = useTheme();
+    const { origin, id, sharedUri, sharedMimeType, sharedName } = useLocalSearchParams<{
+        origin?: string;
+        id?: string;
+        sharedUri?: string;
+        sharedMimeType?: string;
+        sharedName?: string;
+    }>();
     const { categories } = useCategories();
     const { documents, addDocument, updateDocument } = useDocuments();
     const documentToEdit = id ? documents.find((document) => document.id === id) : undefined;
@@ -45,6 +53,17 @@ export default function AddDocumentScreen() {
     const [documentNumber, setDocumentNumber] = useState(documentToEdit?.documentNumber ?? '');
     const [notes, setNotes] = useState(documentToEdit?.notes ?? '');
 
+    const sharedFile =
+        !id && sharedUri
+            ? {
+                uri: sharedUri,
+                type: sharedMimeType?.toLowerCase().startsWith('image/')
+                    ? 'image' as const
+                    : 'pdf' as const,
+                name: sharedName || sharedUri.split('/').pop(),
+            }
+            : null;
+
     // File state (will be expanded in Phase 4B/4C)
     const [selectedFile, setSelectedFile] = useState<{
         uri: string;
@@ -57,7 +76,7 @@ export default function AddDocumentScreen() {
                 type: documentToEdit.fileType,
                 name: documentToEdit.fileUri.split('/').pop(),
             }
-            : null
+            : sharedFile
     );
 
     // Modal visibility state
@@ -221,9 +240,9 @@ export default function AddDocumentScreen() {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
             {/* Header */}
-            <Appbar.Header>
+            <Appbar.Header style={{ backgroundColor: theme.colors.surface }}>
                 <Appbar.BackAction onPress={() => router.back()} />
                 <Appbar.Content title={isEditing ? 'Edit Document' : 'New Document'} />
             </Appbar.Header>
@@ -236,7 +255,10 @@ export default function AddDocumentScreen() {
             >
                 {/* Title Field */}
                 <View style={styles.fieldContainer}>
-                    <Text variant="bodyMedium" style={styles.fieldLabel}>
+                    <Text
+                        variant="bodyMedium"
+                        style={[styles.fieldLabel, { color: theme.colors.onBackground }]}
+                    >
                         Title
                     </Text>
                     <TextInput
@@ -245,25 +267,38 @@ export default function AddDocumentScreen() {
                         mode="outlined"
                         placeholder="Enter document title"
                         maxLength={MAX_TITLE_LENGTH}
-                        style={styles.textInput}
-                        outlineColor="#E0E0E0"
-                        activeOutlineColor="#009688"
-                        textColor="#000000"           // ADDED - black text
-                        placeholderTextColor="#9E9E9E"
+                        style={[styles.textInput, { backgroundColor: theme.colors.surface }]}
+                        outlineColor={theme.colors.outline}
+                        activeOutlineColor={theme.colors.tertiary}
+                        textColor={theme.colors.onSurface}
+                        placeholderTextColor={theme.colors.onSurfaceVariant}
                     />
-                    <HelperText type="info" visible={true} style={styles.helperText}>
+                    <HelperText
+                        type="info"
+                        visible={true}
+                        style={[styles.helperText, { color: theme.colors.onSurfaceVariant }]}
+                    >
                         {`${title.length}/${MAX_TITLE_LENGTH} characters`}
                     </HelperText>
                 </View>
 
                 {/* Category Picker Field */}
                 <View style={styles.fieldContainer}>
-                    <Text variant="bodyMedium" style={styles.fieldLabel}>
+                    <Text
+                        variant="bodyMedium"
+                        style={[styles.fieldLabel, { color: theme.colors.onBackground }]}
+                    >
                         Category
                     </Text>
                     <TouchableRipple
                         onPress={() => setCategoryPickerVisible(true)}
-                        style={[styles.pickerButton, { borderColor: '#E0E0E0' }]}
+                        style={[
+                            styles.pickerButton,
+                            {
+                                borderColor: theme.colors.outline,
+                                backgroundColor: theme.colors.surface,
+                            },
+                        ]}
                     >
                         <View style={styles.pickerContent}>
                             {/* Category Icon */}
@@ -281,7 +316,10 @@ export default function AddDocumentScreen() {
                             </View>
 
                             {/* Category Name */}
-                            <Text variant="bodyLarge" style={styles.pickerText}>
+                            <Text
+                                variant="bodyLarge"
+                                style={[styles.pickerText, { color: theme.colors.onSurface }]}
+                            >
                                 {selectedCategory?.name || 'Select Category'}
                             </Text>
 
@@ -289,15 +327,19 @@ export default function AddDocumentScreen() {
                             <MaterialCommunityIcons
                                 name="chevron-down"
                                 size={24}
-                                color="#757575"
+                                color={theme.colors.onSurfaceVariant}
                             />
                         </View>
                     </TouchableRipple>
                 </View>
                 {/* Document Number Field */}
                 <View style={styles.fieldContainer}>
-                    <Text variant="bodyMedium" style={styles.fieldLabel}>
-                        Document Number <Text style={styles.optionalText}>(Optional)</Text>
+                    <Text
+                        variant="bodyMedium"
+                        style={[styles.fieldLabel, { color: theme.colors.onBackground }]}
+                    >
+                        Document Number{' '}
+                        <Text style={{ color: theme.colors.onSurfaceVariant }}>(Optional)</Text>
                     </Text>
                     <TextInput
                         value={documentNumber}
@@ -305,18 +347,22 @@ export default function AddDocumentScreen() {
                         mode="outlined"
                         placeholder="e.g., 1234 5678 9012"
                         maxLength={MAX_DOC_NUMBER_LENGTH}
-                        style={styles.textInput}
-                        outlineColor="#E0E0E0"
-                        activeOutlineColor="#009688"
-                        textColor="#000000"           // ADDED
-                        placeholderTextColor="#9E9E9E"
+                        style={[styles.textInput, { backgroundColor: theme.colors.surface }]}
+                        outlineColor={theme.colors.outline}
+                        activeOutlineColor={theme.colors.tertiary}
+                        textColor={theme.colors.onSurface}
+                        placeholderTextColor={theme.colors.onSurfaceVariant}
                     />
                 </View>
 
                 {/* Notes Field */}
                 <View style={styles.fieldContainer}>
-                    <Text variant="bodyMedium" style={styles.fieldLabel}>
-                        Notes <Text style={styles.optionalText}>(Optional)</Text>
+                    <Text
+                        variant="bodyMedium"
+                        style={[styles.fieldLabel, { color: theme.colors.onBackground }]}
+                    >
+                        Notes{' '}
+                        <Text style={{ color: theme.colors.onSurfaceVariant }}>(Optional)</Text>
                     </Text>
                     <TextInput
                         value={notes}
@@ -325,17 +371,24 @@ export default function AddDocumentScreen() {
                         placeholder="Add any additional notes..."
                         multiline
                         numberOfLines={3}
-                        style={[styles.textInput, styles.notesInput]}
-                        outlineColor="#E0E0E0"
-                        activeOutlineColor="#009688"
-                        textColor="#000000"           // ADDED
-                        placeholderTextColor="#9E9E9E"
+                        style={[
+                            styles.textInput,
+                            styles.notesInput,
+                            { backgroundColor: theme.colors.surface },
+                        ]}
+                        outlineColor={theme.colors.outline}
+                        activeOutlineColor={theme.colors.tertiary}
+                        textColor={theme.colors.onSurface}
+                        placeholderTextColor={theme.colors.onSurfaceVariant}
                     />
                 </View>
 
                 {/* File Selection Section */}
                 <View style={styles.fieldContainer}>
-                    <Text variant="bodyMedium" style={styles.fieldLabel}>
+                    <Text
+                        variant="bodyMedium"
+                        style={[styles.fieldLabel, { color: theme.colors.onBackground }]}
+                    >
                         Attachment
                     </Text>
 
@@ -343,15 +396,24 @@ export default function AddDocumentScreen() {
                     {!selectedFile && (
                         <TouchableRipple
                             onPress={() => setFileSheetVisible(true)}
-                            style={styles.addFileButton}
+                            style={[
+                                styles.addFileButton,
+                                {
+                                    borderColor: theme.colors.tertiary,
+                                    backgroundColor: theme.colors.surfaceVariant,
+                                },
+                            ]}
                         >
                             <View style={styles.addFileContent}>
                                 <MaterialCommunityIcons
                                     name="plus"
                                     size={24}
-                                    color="#009688"
+                                    color={theme.colors.tertiary}
                                 />
-                                <Text variant="bodyLarge" style={styles.addFileText}>
+                                <Text
+                                    variant="bodyLarge"
+                                    style={[styles.addFileText, { color: theme.colors.tertiary }]}
+                                >
                                     Add File
                                 </Text>
                             </View>
@@ -360,8 +422,18 @@ export default function AddDocumentScreen() {
 
                     {/* File Preview (shown when file is selected) */}
                     {selectedFile && (
-                        <View style={styles.filePreviewContainer}>
-                            <View style={styles.filePreview}>
+                        <View
+                            style={[
+                                styles.filePreviewContainer,
+                                { borderColor: theme.colors.outline },
+                            ]}
+                        >
+                            <View
+                                style={[
+                                    styles.filePreview,
+                                    { backgroundColor: theme.colors.surfaceVariant },
+                                ]}
+                            >
                                 {/* File Icon */}
                                 <View
                                     style={[
@@ -383,12 +455,21 @@ export default function AddDocumentScreen() {
                                 <View style={styles.fileInfo}>
                                     <Text
                                         variant="bodyMedium"
-                                        style={styles.fileName}
+                                        style={[
+                                            styles.fileName,
+                                            { color: theme.colors.onSurface },
+                                        ]}
                                         numberOfLines={1}
                                     >
                                         {selectedFile.name || 'Selected file'}
                                     </Text>
-                                    <Text variant="bodySmall" style={styles.fileType}>
+                                    <Text
+                                        variant="bodySmall"
+                                        style={[
+                                            styles.fileType,
+                                            { color: theme.colors.onSurfaceVariant },
+                                        ]}
+                                    >
                                         {selectedFile.type === 'pdf' ? 'PDF Document' : 'Image'}
                                     </Text>
                                 </View>
@@ -410,9 +491,18 @@ export default function AddDocumentScreen() {
                             {/* Change File Button */}
                             <TouchableRipple
                                 onPress={() => setFileSheetVisible(true)}
-                                style={styles.changeFileButton}
+                                style={[
+                                    styles.changeFileButton,
+                                    { borderTopColor: theme.colors.outline },
+                                ]}
                             >
-                                <Text variant="bodyMedium" style={styles.changeFileText}>
+                                <Text
+                                    variant="bodyMedium"
+                                    style={[
+                                        styles.changeFileText,
+                                        { color: theme.colors.tertiary },
+                                    ]}
+                                >
                                     Change File
                                 </Text>
                             </TouchableRipple>
@@ -420,7 +510,15 @@ export default function AddDocumentScreen() {
                     )}
                     {/* Image Preview - Only shown for images */}
                     {selectedFile && selectedFile.type === 'image' && (
-                        <View style={styles.imagePreviewContainer}>
+                        <View
+                            style={[
+                                styles.imagePreviewContainer,
+                                {
+                                    borderColor: theme.colors.outline,
+                                    backgroundColor: theme.colors.surfaceVariant,
+                                },
+                            ]}
+                        >
                             <Image
                                 source={{ uri: selectedFile.uri }}
                                 style={styles.imagePreview}
@@ -432,7 +530,15 @@ export default function AddDocumentScreen() {
             </ScrollView>
 
             {/* Bottom Save Button */}
-            <View style={styles.bottomContainer}>
+            <View
+                style={[
+                    styles.bottomContainer,
+                    {
+                        borderTopColor: theme.colors.outline,
+                        backgroundColor: theme.colors.surface,
+                    },
+                ]}
+            >
                 <Button
                     mode="contained"
                     onPress={handleSave}
@@ -487,7 +593,7 @@ export default function AddDocumentScreen() {
                     <Dialog.Actions>
                         <Button
                             onPress={() => setNoFileWarningVisible(false)}
-                            textColor="#757575"
+                            textColor={theme.colors.onSurfaceVariant}
                         >
                             Cancel
                         </Button>
@@ -522,7 +628,6 @@ export default function AddDocumentScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#FFFFFF',
     },
     scrollView: {
         flex: 1,
@@ -535,28 +640,18 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     fieldLabel: {
-        color: '#000000',
         fontWeight: '500',
         marginBottom: 8,
     },
-    optionalText: {
-        color: '#9E9E9E',
-        fontWeight: '400',
-    },
-    textInput: {
-        backgroundColor: '#FAFAFA',
-    },
+    textInput: {},
     notesInput: {
         minHeight: 80,
     },
-    helperText: {
-        color: '#9E9E9E',
-    },
+    helperText: {},
     // Category Picker styles
     pickerButton: {
         borderWidth: 1,
         borderRadius: 4,
-        backgroundColor: '#FFFFFF',
     },
     pickerContent: {
         flexDirection: 'row',
@@ -574,15 +669,12 @@ const styles = StyleSheet.create({
     },
     pickerText: {
         flex: 1,
-        color: '#000000',
     },
     // Add File Button styles
     addFileButton: {
         borderWidth: 2,
         borderStyle: 'dashed',
-        borderColor: '#009688',
         borderRadius: 8,
-        backgroundColor: '#F5F5F5',
     },
     addFileContent: {
         flexDirection: 'row',
@@ -591,14 +683,12 @@ const styles = StyleSheet.create({
         paddingVertical: 24,
     },
     addFileText: {
-        color: '#009688',
         fontWeight: '500',
         marginLeft: 8,
     },
     // File Preview styles
     filePreviewContainer: {
         borderWidth: 1,
-        borderColor: '#E0E0E0',
         borderRadius: 8,
         overflow: 'hidden',
     },
@@ -606,7 +696,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         padding: 12,
-        backgroundColor: '#FAFAFA',
     },
     fileIconContainer: {
         width: 48,
@@ -620,11 +709,9 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     fileName: {
-        color: '#000000',
         fontWeight: '500',
     },
     fileType: {
-        color: '#757575',
         marginTop: 2,
     },
     removeFileButton: {
@@ -633,10 +720,8 @@ const styles = StyleSheet.create({
     changeFileButton: {
         paddingVertical: 10,
         borderTopWidth: 1,
-        borderTopColor: '#E0E0E0',
     },
     changeFileText: {
-        color: '#009688',
         textAlign: 'center',
         fontWeight: '500',
     },
@@ -645,8 +730,6 @@ const styles = StyleSheet.create({
         padding: 16,
         paddingBottom: 32,
         borderTopWidth: 1,
-        borderTopColor: '#E0E0E0',
-        backgroundColor: '#FFFFFF',
     },
     saveButton: {
         borderRadius: 8,
@@ -669,10 +752,8 @@ const styles = StyleSheet.create({
     imagePreviewContainer: {
         marginTop: 12,
         borderWidth: 1,
-        borderColor: '#E0E0E0',
         borderRadius: 8,
         overflow: 'hidden',
-        backgroundColor: '#F5F5F5',
     },
     imagePreview: {
         width: '100%',
