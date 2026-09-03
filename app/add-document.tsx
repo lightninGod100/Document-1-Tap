@@ -637,15 +637,17 @@ const styles = StyleSheet.create({
         paddingBottom: 32,
     },
     fieldContainer: {
-        marginBottom: 20,
+        marginBottom: 10,
     },
     fieldLabel: {
-        fontWeight: '500',
+        fontWeight: '800',
         marginBottom: 8,
     },
     textInput: {},
     notesInput: {
-        minHeight: 80,
+        minHeight: 40,
+        paddingTop: 10,
+        textAlignVertical: 'top',
     },
     helperText: {},
     // Category Picker styles
@@ -727,8 +729,8 @@ const styles = StyleSheet.create({
     },
     // Bottom Save Button styles
     bottomContainer: {
-        padding: 16,
-        paddingBottom: 32,
+        padding: 12,
+        paddingBottom: 44,
         borderTopWidth: 1,
     },
     saveButton: {
@@ -739,7 +741,7 @@ const styles = StyleSheet.create({
     },
     saveButtonLabel: {
         color: '#FFFFFF',
-        fontWeight: '600',
+        fontWeight: '900',
     },
     // Dialog styles
     dialogTitle: {
@@ -757,6 +759,6 @@ const styles = StyleSheet.create({
     },
     imagePreview: {
         width: '100%',
-        height: 120,
+        height: 200,
     },
 });

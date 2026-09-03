@@ -10,10 +10,12 @@ import {
   Image,
   ScrollView,
   StyleSheet,
+  useWindowDimensions,
   View,
   BackHandler
 } from 'react-native';
 import {
+  ActivityIndicator,
   Appbar,
   Button,
   Chip,
@@ -39,11 +41,20 @@ import { openPdfInViewer } from '../../src/utils/openPdfViewer';
 // Import the image zoom component
 import { ImageZoom } from '@likashefqet/react-native-image-zoom';
 
+const DEFAULT_IMAGE_ASPECT_RATIO = 1 / 1.41;
+const IMAGE_PADDING = 24;
+const MAX_IMAGE_HEIGHT_RATIO = 0.7;
+const PLACEHOLDER_IMAGE = require('../../assets/images/doc_placeholderr.jpg');
+const PLACEHOLDER_IMAGE_SIZE = Image.resolveAssetSource(PLACEHOLDER_IMAGE);
+const PLACEHOLDER_ASPECT_RATIO =
+  PLACEHOLDER_IMAGE_SIZE.width / PLACEHOLDER_IMAGE_SIZE.height;
+
 export default function DocumentDetailScreen() {
   const router = useRouter();
   const { id, source } = useLocalSearchParams<{ id: string; source?: string }>();
   const theme = useTheme();
   const insets = useSafeAreaInsets();
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
 
   // Context hooks
   const { documents, toggleStar, deleteDocument } = useDocuments();
@@ -59,6 +70,10 @@ export default function DocumentDetailScreen() {
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [imageLayout, setImageLayout] = useState<{
+    uri: string;
+    aspectRatio: number;
+  } | null>(null);
 
   // Get category info
   const category = categories.find((c) => c.id === document?.categoryId);
@@ -69,6 +84,42 @@ export default function DocumentDetailScreen() {
       getFormattedFileSize(document.fileUri).then(setFileSize);
     }
   }, [document?.fileUri]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!document?.fileUri || document.fileType !== 'image') {
+      setImageLayout(null);
+      return;
+    }
+
+    const imageUri = document.fileUri;
+
+    Image.getSize(imageUri)
+      .then(({ width, height }) => {
+        if (!cancelled) {
+          setImageLayout({
+            uri: imageUri,
+            aspectRatio:
+              width > 0 && height > 0
+                ? width / height
+                : DEFAULT_IMAGE_ASPECT_RATIO,
+          });
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setImageLayout({
+            uri: imageUri,
+            aspectRatio: DEFAULT_IMAGE_ASPECT_RATIO,
+          });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [document?.fileType, document?.fileUri]);
 
   // Handle case where document not found
 
@@ -259,8 +310,26 @@ export default function DocumentDetailScreen() {
     </Appbar.Header>
   );
 
+  const currentImageAspectRatio =
+    document.fileUri && imageLayout?.uri === document.fileUri
+      ? imageLayout.aspectRatio
+      : null;
+  const isImageLayoutPending =
+    document.fileType === 'image' &&
+    !!document.fileUri &&
+    currentImageAspectRatio === null;
+  const imageContentWidth = Math.max(windowWidth - IMAGE_PADDING * 2, 0);
+  const imageContainerHeight = Math.min(
+    imageContentWidth / (currentImageAspectRatio ?? DEFAULT_IMAGE_ASPECT_RATIO) +
+      IMAGE_PADDING * 2,
+    windowHeight * MAX_IMAGE_HEIGHT_RATIO
+  );
+  const placeholderImageWidth = imageContentWidth * 0.9;
+  const placeholderImageHeight =
+    placeholderImageWidth / PLACEHOLDER_ASPECT_RATIO;
+
   const renderImageViewer = () => (
-    <View style={styles.imageContainer}>
+    <View style={[styles.imageContainer, { height: imageContainerHeight }]}>
       <ImageZoom
         uri={document.fileUri!}
         minScale={1}
@@ -300,10 +369,18 @@ export default function DocumentDetailScreen() {
     </View>
   );
   const renderPlaceholder = () => (
-    <View style={styles.placeholderContainer}>
+    <View
+      style={[
+        styles.placeholderContainer,
+        { height: placeholderImageHeight + IMAGE_PADDING * 2 },
+      ]}
+    >
       <Image
-        source={require('../../assets/images/doc_placeholderr.jpg')}
-        style={styles.placeholderImage}
+        source={PLACEHOLDER_IMAGE}
+        style={{
+          width: placeholderImageWidth,
+          height: placeholderImageHeight,
+        }}
         resizeMode="contain"
       />
     </View>
@@ -315,12 +392,12 @@ export default function DocumentDetailScreen() {
         <Chip
           mode="flat"
           style={[
-            styles.categoryChip,
-            { backgroundColor: `${category?.color || '#137fec'}15` },
+            styles.metadataChip,
+            { backgroundColor: `${category?.color || theme.colors.primary}15` },
           ]}
           textStyle={[
-            styles.categoryChipText,
-            { color: category?.color || '#137fec' },
+            styles.metadataChipText,
+            { color: category?.color || theme.colors.primary },
           ]}
         >
           {category?.name || 'Uncategorized'}
@@ -329,8 +406,14 @@ export default function DocumentDetailScreen() {
         {/* File Type Chip */}
         <Chip
           mode="flat"
-          style={styles.fileTypeChip}
-          textStyle={styles.fileTypeChipText}
+          style={[
+            styles.metadataChip,
+            { backgroundColor: `${category?.color || theme.colors.primary}15` },
+          ]}
+          textStyle={[
+            styles.metadataChipText,
+            { color: category?.color || theme.colors.primary },
+          ]}
         >
           {document.fileType === 'pdf' ? 'PDF' : 'Image'}
         </Chip>
@@ -453,31 +536,37 @@ export default function DocumentDetailScreen() {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {renderHeader()}
 
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Image or PDF Viewer or Placeholder */}
-        {!document.fileUri
-          ? renderPlaceholder()
-          : document.fileType === 'image'
-            ? renderImageViewer()
-            : renderPdfCard()}
-
-        {/* Metadata Row */}
-        <View style={styles.contentPadding}>
-          {renderMetadataRow()}
-
-          <Divider style={styles.divider} />
-
-          {/* Document ID Section */}
-          {renderDocumentIdSection()}
-
-          {/* Notes Section */}
-          {renderNotesSection()}
+      {isImageLayoutPending ? (
+        <View style={styles.imageLoadingContainer}>
+          <ActivityIndicator color={theme.colors.primary} />
         </View>
-      </ScrollView>
+      ) : (
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Image or PDF Viewer or Placeholder */}
+          {!document.fileUri
+            ? renderPlaceholder()
+            : document.fileType === 'image'
+              ? renderImageViewer()
+              : renderPdfCard()}
+
+          {/* Metadata Row */}
+          <View style={styles.contentPadding}>
+            {renderMetadataRow()}
+
+            <Divider style={styles.divider} />
+
+            {/* Document ID Section */}
+            {renderDocumentIdSection()}
+
+            {/* Notes Section */}
+            {renderNotesSection()}
+          </View>
+        </ScrollView>
+      )}
 
 
 
@@ -556,8 +645,12 @@ const styles = StyleSheet.create({
   // Image Viewer
   imageContainer: {
     width: '100%',
-    aspectRatio: 1 / 1.41, // A4 ratio
-    padding: 24,
+    padding: IMAGE_PADDING,
+  },
+  imageLoadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   zoomableImage: {
     flex: 1,
@@ -603,22 +696,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  categoryChip: {
+  metadataChip: {
     height: 31,
   },
-  categoryChipText: {
+  metadataChipText: {
     fontSize: 11,
     fontWeight: '600',
-  },
-  fileTypeChip: {
-    backgroundColor: '#2b2b2a',
-    height: 31,
-
-  },
-  fileTypeChipText: {
-    fontSize: 11,
-
-    //color: '#64748B',
   },
 
   divider: {
@@ -714,15 +797,9 @@ const styles = StyleSheet.create({
   // Placeholder
   placeholderContainer: {
     width: '100%',
-    aspectRatio: 1 / 1.41,
-    padding: 0,
+    padding: IMAGE_PADDING,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  placeholderImage: {
-    width: '90%',
-    height: '70%',
-    borderRadius: 8,
   },
 
 });
