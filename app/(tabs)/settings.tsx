@@ -242,14 +242,18 @@ const handleShareApp = async () => {
             description="Frequently asked questions"
             left={(props) => <List.Icon {...props} icon="help-circle-outline" />}
             right={(props) => <List.Icon {...props} icon="chevron-right" />}
-            onPress={() => {}} // No-op: UI only
+            onPress={() =>
+              router.push({ pathname: '/settings-content', params: { section: 'faq' } })
+            }
           />
           <List.Item
             title="Reach Us"
             description="Get in touch with our team"
             left={(props) => <List.Icon {...props} icon="email-outline" />}
             right={(props) => <List.Icon {...props} icon="chevron-right" />}
-            onPress={() => {}} // No-op: UI only
+            onPress={() =>
+              router.push({ pathname: '/settings-content', params: { section: 'contact' } })
+            }
           />
 
           <Divider />
@@ -261,14 +265,18 @@ const handleShareApp = async () => {
             description="How we handle your data"
             left={(props) => <List.Icon {...props} icon="shield-lock-outline" />}
             right={(props) => <List.Icon {...props} icon="chevron-right" />}
-            onPress={() => {}} // No-op: UI only
+            onPress={() =>
+              router.push({ pathname: '/settings-content', params: { section: 'privacy' } })
+            }
           />
           <List.Item
             title="Terms of Service"
             description="Terms and conditions"
             left={(props) => <List.Icon {...props} icon="file-document-outline" />}
             right={(props) => <List.Icon {...props} icon="chevron-right" />}
-            onPress={() => {}} // No-op: UI only
+            onPress={() =>
+              router.push({ pathname: '/settings-content', params: { section: 'terms' } })
+            }
           />
 
           <Divider />
