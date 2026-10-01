@@ -45,9 +45,7 @@ const DEFAULT_IMAGE_ASPECT_RATIO = 1 / 1.41;
 const IMAGE_PADDING = 24;
 const MAX_IMAGE_HEIGHT_RATIO = 0.7;
 const PLACEHOLDER_IMAGE = require('../../assets/images/doc_placeholderr.jpg');
-const PLACEHOLDER_IMAGE_SIZE = Image.resolveAssetSource(PLACEHOLDER_IMAGE);
-const PLACEHOLDER_ASPECT_RATIO =
-  PLACEHOLDER_IMAGE_SIZE.width / PLACEHOLDER_IMAGE_SIZE.height;
+const PLACEHOLDER_ASPECT_RATIO = 1024 / 558;
 
 export default function DocumentDetailScreen() {
   const router = useRouter();
@@ -95,8 +93,9 @@ export default function DocumentDetailScreen() {
 
     const imageUri = document.fileUri;
 
-    Image.getSize(imageUri)
-      .then(({ width, height }) => {
+    Image.getSize(
+      imageUri,
+      (width, height) => {
         if (!cancelled) {
           setImageLayout({
             uri: imageUri,
@@ -106,15 +105,16 @@ export default function DocumentDetailScreen() {
                 : DEFAULT_IMAGE_ASPECT_RATIO,
           });
         }
-      })
-      .catch(() => {
+      },
+      () => {
         if (!cancelled) {
           setImageLayout({
             uri: imageUri,
             aspectRatio: DEFAULT_IMAGE_ASPECT_RATIO,
           });
         }
-      });
+      }
+    );
 
     return () => {
       cancelled = true;
